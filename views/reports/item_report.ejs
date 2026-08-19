@@ -1,0 +1,76 @@
+<%- include('../partials/header') %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+  <div>
+    <a href="/reports" class="text-decoration-none text-muted small">&larr; Back to Reports</a>
+    <h3 class="fw-bold mb-1 mt-1">Item-Wise Sales Report</h3>
+    <p class="text-muted small mb-0">Track product performance, units sold, and total sales revenue</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-trigger-print shadow-sm">
+      <i class="bi bi-printer me-1"></i> Print Report
+    </button>
+  </div>
+</div>
+
+<!-- Item Performance Table -->
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-white py-3">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-6">
+        <h6 class="fw-bold mb-0 text-dark">Product Sales & Inventory</h6>
+      </div>
+      <div class="col-md-6">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" class="form-control border-start-0" placeholder="Filter items..." data-table-search="itemReportTable">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" id="itemReportTable">
+        <thead>
+          <tr>
+            <th>Item Name</th>
+            <th>Item Code</th>
+            <th class="text-center">Current Stock</th>
+            <th class="text-center">Total Sold Qty</th>
+            <th class="text-end">Total Sales Revenue (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (items && items.length > 0) { %>
+            <% items.forEach(it => { %>
+              <tr>
+                <td class="fw-bold text-dark"><%= it.name %></td>
+                <td class="font-monospace text-muted small"><%= it.item_code || '--' %></td>
+                <td class="text-center">
+                  <span class="badge bg-light text-dark border px-2 py-1">
+                    <%= it.current_stock %> <%= it.unit %>
+                  </span>
+                </td>
+                <td class="text-center fw-semibold text-primary">
+                  <%= it.total_sold_qty %> <%= it.unit %>
+                </td>
+                <td class="text-end fw-bold fs-6 text-success">
+                  ₹ <%= parseFloat(it.total_sales_value).toFixed(2) %>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">
+                No item sales recorded yet.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

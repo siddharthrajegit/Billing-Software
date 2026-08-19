@@ -1,0 +1,124 @@
+<%- include('../partials/header') %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Payment Transactions</h3>
+    <p class="text-muted small mb-0">Record receipts from customers and payments to vendors</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/payments/create?type=payment_in" class="btn btn-success shadow-sm">
+      <i class="bi bi-arrow-down-left-circle me-1"></i> Record Receipt (In)
+    </a>
+    <a href="/payments/create?type=payment_out" class="btn btn-danger shadow-sm">
+      <i class="bi bi-arrow-up-right-circle me-1"></i> Record Payment (Out)
+    </a>
+  </div>
+</div>
+
+<!-- Tabs & Search Filter -->
+<div class="card shadow-sm border-0 mb-3">
+  <div class="card-body p-2 p-md-3">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-6">
+        <div class="btn-group" role="group">
+          <a href="/payments" class="btn btn-sm <%= !typeFilter ? 'btn-primary' : 'btn-outline-secondary' %>">All Payments</a>
+          <a href="/payments?type=payment_in" class="btn btn-sm <%= typeFilter === 'payment_in' ? 'btn-success' : 'btn-outline-secondary' %>">Receipts (In)</a>
+          <a href="/payments?type=payment_out" class="btn btn-sm <%= typeFilter === 'payment_out' ? 'btn-danger' : 'btn-outline-secondary' %>">Payments (Out)</a>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" class="form-control border-start-0" placeholder="Search payments by voucher no, party, reference..." data-table-search="paymentsTable">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payments Table -->
+<div class="card shadow-sm border-0">
+  <div class="card-body p-0">
+    <div style="overflow-x: hidden;">
+      <table class="table table-hover align-middle mb-0 w-100" id="paymentsTable" style="font-size: 0.85rem;">
+        <thead class="table-light">
+          <tr>
+            <th style="padding: 0.5rem 0.65rem;">Voucher No</th>
+            <th style="padding: 0.5rem 0.65rem;">Date</th>
+            <th style="padding: 0.5rem 0.65rem;">Party Name</th>
+            <th style="padding: 0.5rem 0.4rem;" class="text-center">Type</th>
+            <th style="padding: 0.5rem 0.4rem;" class="text-center">Mode</th>
+            <th style="padding: 0.5rem 0.65rem;">Reference / Note</th>
+            <th style="padding: 0.5rem 0.65rem;" class="text-end">Amount (₹)</th>
+            <th style="width: 36px; padding: 0.5rem 0.35rem;" class="text-center"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (payments && payments.length > 0) { %>
+            <% payments.forEach(p => { %>
+              <tr>
+                <td style="padding: 0.45rem 0.65rem;" class="font-monospace fw-semibold text-primary"><%= p.payment_number %></td>
+                <td style="padding: 0.45rem 0.65rem;" class="text-muted small"><%= p.payment_date %></td>
+                <td style="padding: 0.45rem 0.65rem;">
+                  <a href="/parties/ledger/<%= p.party_id %>" class="text-decoration-none text-dark fw-medium">
+                    <%= p.party_name %>
+                  </a>
+                </td>
+                <td style="padding: 0.45rem 0.4rem;" class="text-center">
+                  <% if (p.type === 'payment_in') { %>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.7rem;">
+                      Received (In)
+                    </span>
+                  <% } else { %>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 0.7rem;">
+                      Paid (Out)
+                    </span>
+                  <% } %>
+                </td>
+                <td style="padding: 0.45rem 0.4rem;" class="text-center text-uppercase small"><%= p.payment_mode || 'Cash' %></td>
+                <td style="padding: 0.45rem 0.65rem;" class="small text-muted text-truncate" style="max-width: 180px;">
+                  <%= [p.reference_no, p.notes].filter(Boolean).join(' - ') || '--' %>
+                </td>
+                <td style="padding: 0.45rem 0.65rem;" class="text-end fw-bold <%= p.type === 'payment_in' ? 'text-success' : 'text-danger' %> text-nowrap">
+                  ₹ <%= parseFloat(p.amount).toFixed(2) %>
+                </td>
+                <!-- 3-Dot Action Menu -->
+                <td style="padding: 0.45rem 0.35rem;" class="text-center">
+                  <div class="dropdown">
+                    <button class="btn btn-light btn-sm p-1 border-0 rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions" style="width: 28px; height: 28px; line-height: 1;">
+                      <i class="bi bi-three-dots-vertical text-secondary"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border py-1">
+                      <li>
+                        <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/parties/ledger/<%= p.party_id %>">
+                          <i class="bi bi-journal-text text-primary me-2"></i> View Party Ledger
+                        </a>
+                      </li>
+                      <li><hr class="dropdown-divider my-1"></li>
+                      <li>
+                        <form action="/payments/delete/<%= p.id %>" method="POST" class="m-0 form-delete-confirm" data-confirm-message="Are you sure you want to delete this payment record? FIFO bill balances will be recalculated automatically.">
+                          <button type="submit" class="dropdown-item py-1 px-3 small d-flex align-items-center text-danger border-0 bg-transparent w-100">
+                            <i class="bi bi-trash me-2"></i> Delete Payment
+                          </button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="bi bi-cash-stack fs-2 d-block mb-2 text-secondary"></i>
+                No payment transactions recorded yet.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

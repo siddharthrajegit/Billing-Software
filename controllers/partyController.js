@@ -1,0 +1,188 @@
+const { Party, GST_STATES } = require('../models');
+
+const partyController = {
+  listParties: (req, res) => {
+    const firmId = req.activeFirm.id;
+    const filterType = req.query.type || 'all';
+    
+    let parties;
+    if (filterType === 'customer' || filterType === 'supplier') {
+      parties = Party.getByFirmId(firmId, filterType);
+    } else {
+      parties = Party.getByFirmId(firmId);
+    }
+
+    const partySummaries = Party.getPartySummary(firmId);
+    const summaryMap = {};
+    for (const s of partySummaries) {
+      summaryMap[s.id] = s;
+    }
+
+    res.render('parties/list', {
+      title: 'Parties & Customers',
+      parties,
+      summaryMap,
+      filterType,
+      activeMenu: 'parties'
+    });
+  },
+
+  getCreate: (req, res) => {
+    const defaultType = req.query.type || 'customer';
+    res.render('parties/form', {
+      title: 'Add New Party (Customer / Supplier)',
+      party: null,
+      defaultType,
+      gstStates: GST_STATES,
+      activeMenu: 'parties'
+    });
+  },
+
+  postCreate: (req, res) => {
+    try {
+      const firmId = req.activeFirm.id;
+      const {
+        type, name, phone, email, gstin, pan, billing_address,
+        shipping_address, city, state, state_code, pincode, opening_balance
+      } = req.body;
+
+      if (!name || !name.trim()) {
+        req.flash('error_msg', 'Party / Customer name is required.');
+        return res.redirect('/parties/create');
+      }
+
+      // Auto resolve state code if needed
+      let matchedCode = state_code;
+      if (!matchedCode && state) {
+        const found = GST_STATES.find(s => s.name.toLowerCase() === state.toLowerCase());
+        if (found) matchedCode = found.code;
+      }
+
+      Party.create({
+        firm_id: firmId,
+        type: type || 'customer',
+        name: name.trim(),
+        phone: phone ? phone.trim() : null,
+        email: email ? email.trim() : null,
+        gstin: gstin ? gstin.trim().toUpperCase() : null,
+        pan: pan ? pan.trim().toUpperCase() : null,
+        billing_address: billing_address ? billing_address.trim() : null,
+        shipping_address: shipping_address ? shipping_address.trim() : null,
+        city: city ? city.trim() : null,
+        state: state ? state.trim() : null,
+        state_code: matchedCode || null,
+        pincode: pincode ? pincode.trim() : null,
+        opening_balance: parseFloat(opening_balance) || 0
+      });
+
+      req.flash('success_msg', `Party "${name}" created successfully!`);
+      res.redirect('/parties');
+    } catch (err) {
+      console.error('Create party error:', err);
+      req.flash('error_msg', 'Failed to create party: ' + err.message);
+      res.redirect('/parties/create');
+    }
+  },
+
+  getEdit: (req, res) => {
+    const firmId = req.activeFirm.id;
+    const party = Party.getById(req.params.id, firmId);
+    if (!party) {
+      req.flash('error_msg', 'Party not found.');
+      return res.redirect('/parties');
+    }
+
+    res.render('parties/form', {
+      title: `Edit ${party.name}`,
+      party,
+      defaultType: party.type,
+      gstStates: GST_STATES,
+      activeMenu: 'parties'
+    });
+  },
+
+  postEdit: (req, res) => {
+    try {
+      const firmId = req.activeFirm.id;
+      const partyId = req.params.id;
+      const {
+        type, name, phone, email, gstin, pan, billing_address,
+        shipping_address, city, state, state_code, pincode, opening_balance
+      } = req.body;
+
+      if (!name || !name.trim()) {
+        req.flash('error_msg', 'Party name is required.');
+        return res.redirect(`/parties/edit/${partyId}`);
+      }
+
+      Party.update(partyId, firmId, {
+        type: type || 'customer',
+        name: name.trim(),
+        phone: phone ? phone.trim() : null,
+        email: email ? email.trim() : null,
+        gstin: gstin ? gstin.trim().toUpperCase() : null,
+        pan: pan ? pan.trim().toUpperCase() : null,
+        billing_address: billing_address ? billing_address.trim() : null,
+        shipping_address: shipping_address ? shipping_address.trim() : null,
+        city: city ? city.trim() : null,
+        state: state ? state.trim() : null,
+        state_code: state_code || null,
+        pincode: pincode ? pincode.trim() : null,
+        opening_balance: parseFloat(opening_balance) || 0
+      });
+
+      req.flash('success_msg', 'Party details updated.');
+      res.redirect('/parties');
+    } catch (err) {
+      console.error('Edit party error:', err);
+      req.flash('error_msg', 'Failed to update party: ' + err.message);
+      res.redirect(`/parties/edit/${req.params.id}`);
+    }
+  },
+
+  getLedger: (req, res) => {
+    const firmId = req.activeFirm.id;
+    const partyId = req.params.id;
+    const ledgerData = Party.getLedger(partyId, firmId);
+
+    if (!ledgerData) {
+      req.flash('error_msg', 'Party not found.');
+      return res.redirect('/parties');
+    }
+
+    res.render('parties/ledger', {
+      title: `Ledger Statement - ${ledgerData.party.name}`,
+      party: ledgerData.party,
+      opening_balance: ledgerData.opening_balance || 0,
+      total_billed: ledgerData.total_billed || 0,
+      total_paid: ledgerData.total_paid || 0,
+      closing_balance: ledgerData.closing_balance || 0,
+      pending_bills: ledgerData.pending_bills || [],
+      transactions: ledgerData.transactions || [],
+      activeMenu: 'parties'
+    });
+  },
+
+  postDelete: (req, res) => {
+    try {
+      const firmId = req.activeFirm.id;
+      Party.delete(req.params.id, firmId);
+      req.flash('success_msg', 'Party deleted.');
+      res.redirect('/parties');
+    } catch (err) {
+      console.error('Delete party error:', err);
+      req.flash('error_msg', 'Failed to delete party.');
+      res.redirect('/parties');
+    }
+  },
+
+  // API endpoint for dynamic invoice party lookup
+  apiGetParties: (req, res) => {
+    const firmId = req.activeFirm.id;
+    const type = req.query.type; // customer or supplier
+    const parties = Party.getByFirmId(firmId, type);
+    res.json(parties);
+  }
+};
+
+module.exports = partyController;

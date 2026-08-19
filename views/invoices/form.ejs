@@ -1,0 +1,325 @@
+<%- include('../partials/header', { fluidContainer: true }) %>
+
+<form action="/invoices/create" method="POST" id="invoiceForm" data-firm-state-code="<%= activeFirm.state_code || '' %>">
+  <input type="hidden" name="type" value="<%= invoiceType %>">
+
+  <!-- Top Action Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+      <h3 class="fw-bold mb-0 text-dark">
+        <i class="bi <%= invoiceType === 'sale' ? 'bi-cart-check text-success' : 'bi-bag-plus text-primary' %> me-2"></i>
+        <%= invoiceType === 'sale' ? 'Create Sales Invoice' : 'Record Purchase Bill' %>
+      </h3>
+      <span class="badge bg-primary" id="gstModeBadge">GST Tax Invoice</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="<%= invoiceType === 'sale' ? '/sales' : '/purchases' %>" class="btn btn-outline-secondary btn-sm">Cancel</a>
+      <button type="submit" class="btn btn-success btn-sm px-3 shadow-sm fw-semibold">
+        <i class="bi bi-check2-circle me-1"></i> Save & Generate Bill
+      </button>
+    </div>
+  </div>
+
+  <!-- Row 1: Invoice Settings & Dates -->
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-body p-3">
+      <div class="row g-3 align-items-center">
+        <!-- Invoice / Bill Number -->
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label small mb-1">Invoice / Bill No <span class="text-danger">*</span></label>
+          <input type="text" class="form-control form-control-sm font-monospace fw-bold text-primary" name="invoice_number" value="<%= nextInvoiceNumber %>" required>
+        </div>
+
+        <!-- Invoice Date -->
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label small mb-1">Invoice Date <span class="text-danger">*</span></label>
+          <input type="date" class="form-control form-control-sm" name="invoice_date" value="<%= today %>" required>
+        </div>
+
+        <!-- Due Date -->
+        <div class="col-sm-6 col-md-2">
+          <label class="form-label small mb-1">Due Date</label>
+          <input type="date" class="form-control form-control-sm" name="due_date">
+        </div>
+
+        <!-- GST & Interstate Toggles -->
+        <div class="col-sm-6 col-md-4">
+          <label class="form-label small mb-1 text-muted">Tax & GST Settings</label>
+          <div class="d-flex flex-wrap gap-3 mt-1">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="isGstToggle" name="is_gst_bill" value="1" checked>
+              <label class="form-check-label small fw-semibold" for="isGstToggle">GST Bill</label>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="isInterstateToggle" name="is_interstate" value="1">
+              <label class="form-check-label small" for="isInterstateToggle">Inter-State (IGST)</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Customer / Party Details -->
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-header bg-white py-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="fw-bold small text-uppercase text-secondary">
+          <i class="bi bi-person me-1"></i> <%= invoiceType === 'sale' ? 'Bill To (Customer Details)' : 'Bill From (Supplier Details)' %>
+        </span>
+        <a href="/parties/create?type=<%= invoiceType === 'sale' ? 'customer' : 'supplier' %>" target="_blank" class="small text-decoration-none">
+          + Add New Party
+        </a>
+      </div>
+    </div>
+    <div class="card-body p-3">
+      <div class="row g-3">
+        <!-- Party Quick Dropdown -->
+        <div class="col-md-4">
+          <label class="form-label small mb-1">Select Existing Party</label>
+          <select class="form-select form-select-sm" id="partySelect" name="party_id">
+            <option value="">-- Choose Party or Enter Manually --</option>
+            <% parties.forEach(p => { %>
+              <option value="<%= p.id %>"
+                data-name="<%= p.name %>"
+                data-phone="<%= p.phone || '' %>"
+                data-gstin="<%= p.gstin || '' %>"
+                data-address="<%= p.billing_address || '' %>"
+                data-state="<%= p.state || '' %>"
+                data-state-code="<%= p.state_code || '' %>">
+                <%= p.name %> <%= p.phone ? '(' + p.phone + ')' : '' %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+
+        <!-- Party Name (Mandatory) -->
+        <div class="col-md-4">
+          <label class="form-label small mb-1">Party / Customer Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control form-control-sm" id="partyNameInput" name="party_name" placeholder="Enter party name" required>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="col-md-4">
+          <label class="form-label small mb-1">Phone / Mobile</label>
+          <input type="tel" class="form-control form-control-sm" id="partyPhoneInput" name="party_phone" placeholder="e.g. 9876543210">
+        </div>
+
+        <!-- GSTIN -->
+        <div class="col-md-3">
+          <label class="form-label small mb-1">Party GSTIN</label>
+          <input type="text" class="form-control form-control-sm font-monospace text-uppercase" id="partyGstinInput" name="party_gstin" placeholder="GSTIN (if registered)">
+        </div>
+
+        <!-- Address -->
+        <div class="col-md-5">
+          <label class="form-label small mb-1">Billing Address</label>
+          <input type="text" class="form-control form-control-sm" id="partyAddressInput" name="party_address" placeholder="Address...">
+        </div>
+
+        <!-- State & Code -->
+        <div class="col-md-3">
+          <label class="form-label small mb-1">State</label>
+          <input type="text" class="form-control form-control-sm" id="partyStateInput" name="party_state" placeholder="State name">
+        </div>
+        <div class="col-md-1">
+          <label class="form-label small mb-1">Code</label>
+          <input type="text" class="form-control form-control-sm font-monospace" id="partyStateCodeInput" name="party_state_code" placeholder="00">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Dynamic Line Items Table -->
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+      <span class="fw-bold small text-uppercase text-secondary">
+        <i class="bi bi-box-seam me-1"></i> Bill Line Items
+      </span>
+      <button type="button" class="btn btn-primary btn-sm" id="btnAddItem">
+        <i class="bi bi-plus-lg me-1"></i> Add Item Row
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <div class="invoice-table-wrap">
+        <table class="table table-bordered table-sm mb-0 invoice-items-table" id="invoiceItemsTable">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center" style="width: 35px;">#</th>
+              <th>Item Name / Description</th>
+              <th style="width: 100px;">HSN/SAC</th>
+              <th style="width: 80px;" class="text-end">Qty</th>
+              <th style="width: 90px;">Unit</th>
+              <th style="width: 110px;" class="text-end">Rate (₹)</th>
+              <th style="width: 80px;" class="text-end">Disc %</th>
+              <th style="width: 110px;" class="gst-col">Tax Rate</th>
+              <th style="width: 120px;" class="text-end">Amount (₹)</th>
+              <th style="width: 40px;" class="text-center"></th>
+            </tr>
+          </thead>
+          <tbody id="invoiceItemsBody">
+            <!-- Dynamic rows inserted via invoice-calc.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 4: Calculation Summary, Discounts, Payments, Notes -->
+  <div class="row g-3">
+    <!-- Left: Notes, Terms, Payment Mode -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body p-3">
+          <div class="mb-3">
+            <label class="form-label small">Payment Mode</label>
+            <div class="d-flex flex-wrap gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="payment_mode" id="modeCash" value="cash" checked>
+                <label class="form-check-label small" for="modeCash">Cash</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="payment_mode" id="modeBank" value="bank">
+                <label class="form-check-label small" for="modeBank">Bank Transfer</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="payment_mode" id="modeUpi" value="upi">
+                <label class="form-check-label small" for="modeUpi">UPI</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="payment_mode" id="modeCheque" value="cheque">
+                <label class="form-check-label small" for="modeCheque">Cheque</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="payment_mode" id="modeCredit" value="credit">
+                <label class="form-check-label small" for="modeCredit">Credit (Unpaid)</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="notes" class="form-label small">Private Notes / Remarks</label>
+            <textarea class="form-control form-control-sm" id="notes" name="notes" rows="2" placeholder="Optional notes for your reference..."></textarea>
+          </div>
+
+          <div>
+            <label for="terms" class="form-label small">Invoice Terms & Conditions</label>
+            <textarea class="form-control form-control-sm" id="terms" name="terms" rows="2"><%= activeFirm.terms || '1. Goods once sold will not be taken back. 2. Subject to local jurisdiction.' %></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Totals & Tax Breakdown -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-3">
+          <!-- Subtotal -->
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted small">Taxable Subtotal:</span>
+            <span class="fw-semibold" id="displaySubtotal">₹ 0.00</span>
+            <input type="hidden" name="subtotal" id="subtotalInput" value="0">
+            <input type="hidden" name="taxable_amount" id="taxableAmountInput" value="0">
+          </div>
+
+          <!-- Overall Invoice Discount -->
+          <div class="row g-2 align-items-center mb-2">
+            <div class="col-4">
+              <span class="text-muted small">Discount:</span>
+            </div>
+            <div class="col-4">
+              <select name="discount_type" id="discountTypeSelect" class="form-select form-select-sm">
+                <option value="percentage">Percentage (%)</option>
+                <option value="flat">Flat (₹)</option>
+              </select>
+            </div>
+            <div class="col-4">
+              <input type="number" name="discount_value" id="discountValueInput" class="form-control form-control-sm text-end" min="0" step="any" placeholder="0.00" value="0">
+              <input type="hidden" name="discount_amount" id="discountAmountInput" value="0">
+            </div>
+          </div>
+
+          <!-- GST Summary (Collapsible / Toggleable) -->
+          <div id="gstSummarySection">
+            <div class="d-flex justify-content-between align-items-center mb-1 text-muted small" id="cgstSgstSummaryRow">
+              <span>CGST + SGST:</span>
+              <span class="fw-medium" id="displayTax">₹ 0.00</span>
+              <input type="hidden" name="cgst_amount" id="cgstAmountInput" value="0">
+              <input type="hidden" name="sgst_amount" id="sgstAmountInput" value="0">
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-1 text-muted small d-none" id="igstSummaryRow">
+              <span>IGST (Integrated Tax):</span>
+              <span class="fw-medium">₹ 0.00</span>
+              <input type="hidden" name="igst_amount" id="igstAmountInput" value="0">
+            </div>
+            <input type="hidden" name="tax_amount" id="taxAmountInput" value="0">
+          </div>
+
+          <!-- Round Off -->
+          <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
+            <span>Round Off:</span>
+            <input type="hidden" name="round_off" id="roundOffInput" value="0">
+            <span class="text-muted">₹ 0.00</span>
+          </div>
+
+          <hr class="my-2">
+
+          <!-- Grand Total -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fs-5 fw-bold text-dark">Grand Total:</span>
+            <span class="fs-4 fw-bold text-primary" id="displayGrandTotal">₹ 0.00</span>
+            <input type="hidden" name="grand_total" id="grandTotalInput" value="0">
+          </div>
+
+          <!-- Paid Amount & Due Balance -->
+          <div class="bg-light p-3 rounded mb-3">
+            <div class="row g-2 align-items-center mb-2">
+              <div class="col-sm-5">
+                <label for="paidAmountInput" class="form-label small mb-0 fw-semibold text-success">
+                  Amount Received / Paid:
+                </label>
+              </div>
+              <div class="col-sm-4">
+                <input type="number" name="paid_amount" id="paidAmountInput" class="form-control form-control-sm text-end fw-bold" step="any" min="0" placeholder="0.00" value="0">
+              </div>
+              <div class="col-sm-3 d-flex gap-1">
+                <button type="button" class="btn btn-outline-success btn-sm w-50 p-1 small" id="btnPayFull" title="Full Payment">Full</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm w-50 p-1 small" id="btnPayZero" title="Unpaid / Credit">Zero</button>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="small fw-semibold text-danger">Balance Due:</span>
+              <span class="fw-bold text-danger fs-6" id="displayBalanceDue">₹ 0.00</span>
+              <input type="hidden" name="balance_due" id="balanceDueInput" value="0">
+            </div>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-success btn-lg shadow-sm fw-bold">
+              <i class="bi bi-check2-circle me-1"></i> Save & Generate <%= invoiceType === 'sale' ? 'Sale Invoice' : 'Purchase Bill' %>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- Datalist for Items Autocomplete -->
+<datalist id="itemsDataList">
+  <% items.forEach(it => { %>
+    <option value="<%= it.name %>"
+      data-id="<%= it.id %>"
+      data-hsn="<%= it.hsn_code || '' %>"
+      data-unit="<%= it.unit %>"
+      data-price="<%= invoiceType === 'purchase' ? (it.purchase_price || it.sale_price) : it.sale_price %>"
+      data-tax="<%= it.tax_rate %>">
+      <%= it.name %> (Stock: <%= it.current_stock %> <%= it.unit %> | ₹<%= it.sale_price %>)
+    </option>
+  <% }); %>
+</datalist>
+
+<script src="/js/invoice-calc.js"></script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,115 @@
+<%- include('../partials/header') %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h4 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-person-lines-fill me-2 text-primary"></i>
+          <%= party ? 'Edit Party Details' : 'Add New Customer / Supplier' %>
+        </h4>
+        <a href="/parties" class="btn btn-outline-secondary btn-sm">Cancel</a>
+      </div>
+
+      <div class="card-body p-4">
+        <form action="<%= party ? '/parties/edit/' + party.id : '/parties/create' %>" method="POST">
+          <!-- Type & Name -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="type" class="form-label">Party Type <span class="text-danger">*</span></label>
+              <select class="form-select" id="type" name="type" required>
+                <option value="customer" <%= (party ? party.type === 'customer' : defaultType === 'customer') ? 'selected' : '' %>>Customer (Buyer)</option>
+                <option value="supplier" <%= (party ? party.type === 'supplier' : defaultType === 'supplier') ? 'selected' : '' %>>Supplier (Vendor)</option>
+                <option value="both" <%= (party && party.type === 'both') ? 'selected' : '' %>>Both (Customer & Supplier)</option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <label for="name" class="form-label">Party / Customer Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="name" name="name" placeholder="e.g. Acme Corporation or Rajesh Gupta" value="<%= party ? party.name : '' %>" required autofocus>
+            </div>
+          </div>
+
+          <!-- Contact & Tax Info -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Mobile / Phone</label>
+              <input type="tel" class="form-control" id="phone" name="phone" placeholder="e.g. 9876543210" value="<%= party ? (party.phone || '') : '' %>">
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="email" name="email" placeholder="e.g. party@example.com" value="<%= party ? (party.email || '') : '' %>">
+            </div>
+            <div class="col-md-6">
+              <label for="gstin" class="form-label">GSTIN (Optional)</label>
+              <input type="text" class="form-control font-monospace text-uppercase" id="gstin" name="gstin" placeholder="e.g. 27AAAAA0000A1Z5" maxlength="15" value="<%= party ? (party.gstin || '') : '' %>">
+            </div>
+            <div class="col-md-6">
+              <label for="pan" class="form-label">PAN Number (Optional)</label>
+              <input type="text" class="form-control font-monospace text-uppercase" id="pan" name="pan" placeholder="e.g. ABCDE1234F" maxlength="10" value="<%= party ? (party.pan || '') : '' %>">
+            </div>
+          </div>
+
+          <!-- Address & State -->
+          <div class="row g-3 mb-3">
+            <div class="col-12">
+              <label for="billing_address" class="form-label">Billing Address</label>
+              <textarea class="form-control" id="billing_address" name="billing_address" rows="2" placeholder="Street address, building, locality..."><%= party ? (party.billing_address || '') : '' %></textarea>
+            </div>
+            <div class="col-md-4">
+              <label for="city" class="form-label">City</label>
+              <input type="text" class="form-control" id="city" name="city" placeholder="e.g. Pune" value="<%= party ? (party.city || '') : '' %>">
+            </div>
+            <div class="col-md-4">
+              <label for="partyStateSelect" class="form-label">State</label>
+              <select class="form-select" id="partyStateSelect" name="state">
+                <option value="">-- Select State --</option>
+                <% gstStates.forEach(st => { %>
+                  <option value="<%= st.name %>" data-code="<%= st.code %>" <%= (party && party.state === st.name) ? 'selected' : '' %>>
+                    <%= st.code %> - <%= st.name %>
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="partyStateCodeInput" class="form-label">State Code</label>
+              <input type="text" class="form-control font-monospace" id="partyStateCodeInput" name="state_code" placeholder="e.g. 27" value="<%= party ? (party.state_code || '') : '' %>" readonly>
+            </div>
+            <div class="col-md-2">
+              <label for="pincode" class="form-label">Pincode</label>
+              <input type="text" class="form-control" id="pincode" name="pincode" placeholder="e.g. 411001" value="<%= party ? (party.pincode || '') : '' %>">
+            </div>
+          </div>
+
+          <!-- Opening Balance -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="opening_balance" class="form-label">Opening Balance (₹)</label>
+              <input type="number" class="form-control" id="opening_balance" name="opening_balance" step="any" placeholder="0.00" value="<%= party ? party.opening_balance : '0' %>">
+              <div class="form-text">Positive for amount to receive (Debit), negative for amount to pay (Credit).</div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="/parties" class="btn btn-light px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+              <i class="bi bi-check2-circle me-1"></i> <%= party ? 'Update Party' : 'Save Party' %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const pStateSelect = document.getElementById('partyStateSelect');
+  const pStateCodeInput = document.getElementById('partyStateCodeInput');
+  if (pStateSelect && pStateCodeInput) {
+    pStateSelect.addEventListener('change', function() {
+      const selected = pStateSelect.options[pStateSelect.selectedIndex];
+      pStateCodeInput.value = selected ? (selected.dataset.code || '') : '';
+    });
+  }
+</script>
+
+<%- include('../partials/footer') %>

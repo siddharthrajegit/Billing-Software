@@ -1,0 +1,122 @@
+<%- include('../partials/header') %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+  <div>
+    <a href="/reports" class="text-decoration-none text-muted small">&larr; Back to Reports</a>
+    <h3 class="fw-bold mb-1 mt-1">Party & Customer Wise Report</h3>
+    <p class="text-muted small mb-0">Overview of all customer and supplier accounts and net balances</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-trigger-print shadow-sm">
+      <i class="bi bi-printer me-1"></i> Print Report
+    </button>
+  </div>
+</div>
+
+<!-- Balance KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card kpi-card kpi-receivable shadow-sm p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small text-uppercase fw-semibold">Total Receivables (To Collect)</div>
+          <h3 class="fw-bold text-warning mb-0 mt-1">₹ <%= parseFloat(totalReceivables).toFixed(2) %></h3>
+        </div>
+        <div class="kpi-icon-wrap bg-warning-subtle text-warning">
+          <i class="bi bi-arrow-down-left-circle"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card kpi-card kpi-payable shadow-sm p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small text-uppercase fw-semibold">Total Payables (To Pay)</div>
+          <h3 class="fw-bold text-danger mb-0 mt-1">₹ <%= parseFloat(totalPayables).toFixed(2) %></h3>
+        </div>
+        <div class="kpi-icon-wrap bg-danger-subtle text-danger">
+          <i class="bi bi-arrow-up-right-circle"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Parties Summary Table -->
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-white py-3">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-6">
+        <h6 class="fw-bold mb-0 text-dark">Party Balances</h6>
+      </div>
+      <div class="col-md-6">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" class="form-control border-start-0" placeholder="Filter parties..." data-table-search="partyReportTable">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" id="partyReportTable">
+        <thead>
+          <tr>
+            <th>Party Name</th>
+            <th>Type</th>
+            <th>Contact</th>
+            <th>GSTIN</th>
+            <th>State</th>
+            <th class="text-end">Net Balance (₹)</th>
+            <th class="text-end">Ledger</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (parties && parties.length > 0) { %>
+            <% parties.forEach(p => { %>
+              <tr>
+                <td class="fw-bold">
+                  <a href="/parties/ledger/<%= p.id %>" class="text-decoration-none text-dark">
+                    <%= p.name %>
+                  </a>
+                </td>
+                <td>
+                  <% if (p.type === 'customer') { %>
+                    <span class="badge bg-success-subtle text-success">Customer</span>
+                  <% } else if (p.type === 'supplier') { %>
+                    <span class="badge bg-info-subtle text-info">Supplier</span>
+                  <% } else { %>
+                    <span class="badge bg-secondary-subtle text-secondary">Both</span>
+                  <% } %>
+                </td>
+                <td class="small text-muted"><%= p.phone || '--' %></td>
+                <td class="font-monospace text-muted small"><%= p.gstin || '--' %></td>
+                <td class="small text-muted"><%= p.state || '--' %></td>
+                <td class="text-end fw-bold fs-6 <%= p.closing_balance > 0 ? 'text-success' : (p.closing_balance < 0 ? 'text-danger' : 'text-muted') %>">
+                  ₹ <%= Math.abs(parseFloat(p.closing_balance)).toFixed(2) %>
+                  <small class="fs-7 fw-normal text-muted"><%= p.closing_balance > 0 ? '(Receivable)' : (p.closing_balance < 0 ? '(Payable)' : '(Settled)') %></small>
+                </td>
+                <td class="text-end">
+                  <a href="/parties/ledger/<%= p.id %>" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-journal-text me-1"></i> Statement
+                  </a>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">
+                No parties found.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
