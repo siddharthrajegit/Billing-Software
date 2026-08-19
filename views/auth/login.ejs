@@ -62,9 +62,41 @@
 
         <div class="text-center mt-3 pt-3 border-top">
           <div class="text-muted small mb-1">Need help or support?</div>
-          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1 fw-semibold btn-copy-contact" data-number="9672847747" title="Click to copy phone number">
-            <i class="bi bi-telephone-fill text-success me-1"></i> <span class="contact-num-text">+91 9672847747</span>
-          </button>
+          <div class="dropdown d-inline-block">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1 fw-semibold dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-headset text-primary me-1"></i> Contact Support (+91 9672847747)
+            </button>
+            <ul class="dropdown-menu dropdown-menu-center shadow border-0 text-start py-2 mt-1" style="font-size: 0.85rem; min-width: 230px; border-radius: 10px;">
+              <li class="dropdown-header small text-uppercase fw-bold text-muted">Choose Contact Method</li>
+              <li>
+                <a class="dropdown-item py-2 d-flex align-items-center" href="https://wa.me/919672847747?text=Hi%20RACE%20FINANCE%20Support,%20I%20need%20help." target="_blank" rel="noopener noreferrer">
+                  <i class="bi bi-whatsapp text-success fs-5 me-2"></i>
+                  <div>
+                    <div class="fw-semibold">WhatsApp Chat</div>
+                    <small class="text-muted">Chat with support team</small>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item py-2 d-flex align-items-center" href="tel:+919672847747">
+                  <i class="bi bi-telephone-fill text-primary fs-5 me-2"></i>
+                  <div>
+                    <div class="fw-semibold">Direct Call</div>
+                    <small class="text-muted">Dial +91 9672847747</small>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item py-2 d-flex align-items-center" href="sms:+919672847747?body=Hi%20RACE%20FINANCE%20Support">
+                  <i class="bi bi-chat-dots-fill text-info fs-5 me-2"></i>
+                  <div>
+                    <div class="fw-semibold">Send SMS</div>
+                    <small class="text-muted">Direct text message</small>
+                  </div>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

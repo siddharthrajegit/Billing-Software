@@ -73,49 +73,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sidebarBackdrop) {
     sidebarBackdrop.addEventListener('click', closeSidebar);
   }
-
-  // 5. Click-to-Copy Contact Number Helper (No external site/app navigation)
-  const copyButtons = document.querySelectorAll('.btn-copy-contact');
-  copyButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const numberToCopy = btn.getAttribute('data-number') || '9672847747';
-      const originalHTML = btn.innerHTML;
-
-      function showCopiedState() {
-        btn.innerHTML = '<i class="bi bi-check2-circle text-success me-1"></i> <span class="text-success fw-bold">+91 9672847747 (Copied!)</span>';
-        setTimeout(() => {
-          btn.innerHTML = originalHTML;
-        }, 1800);
-      }
-
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(numberToCopy).then(showCopiedState).catch(() => {
-          fallbackCopyText(numberToCopy, showCopiedState);
-        });
-      } else {
-        fallbackCopyText(numberToCopy, showCopiedState);
-      }
-    });
-  });
-
-  function fallbackCopyText(text, callback) {
-    const tempTextArea = document.createElement('textarea');
-    tempTextArea.value = text;
-    tempTextArea.style.position = 'fixed';
-    tempTextArea.style.left = '-999999px';
-    tempTextArea.style.top = '-999999px';
-    document.body.appendChild(tempTextArea);
-    tempTextArea.focus();
-    tempTextArea.select();
-    try {
-      document.execCommand('copy');
-      if (callback) callback();
-    } catch (err) {
-      console.warn('Clipboard copy fallback error:', err);
-    }
-    tempTextArea.remove();
-  }
 });
