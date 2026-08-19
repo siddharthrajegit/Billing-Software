@@ -1070,6 +1070,81 @@ const Backup = {
   }
 };
 
+const DEFAULT_SETTINGS = {
+  sales: {
+    default_gst_type: 'gst',        // 'gst' or 'non_gst'
+    gst_calc_mode: 'separate',      // 'separate' (Item-wise GST) or 'final_amount' (GST on Final Amount)
+    enable_discount_column: true,   // true or false
+    enable_item_description: true,
+    default_due_days: 0
+  },
+  purchases: {
+    default_gst_type: 'gst',
+    gst_calc_mode: 'separate',
+    enable_discount_column: true
+  },
+  print: {
+    show_bank_details: true,
+    show_upi_qr: true,
+    show_signature: true,
+    footer_notes: ''
+  },
+  general: {
+    currency_symbol: '₹',
+    date_format: 'YYYY-MM-DD'
+  }
+};
+
+const Setting = {
+  get: (firmId) => {
+    try {
+      const row = db.prepare('SELECT * FROM firm_settings WHERE firm_id = ?').get(firmId);
+      if (!row || !row.settings_json) {
+        return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+      }
+      const parsed = JSON.parse(row.settings_json);
+      return {
+        sales: { ...DEFAULT_SETTINGS.sales, ...(parsed.sales || {}) },
+        purchases: { ...DEFAULT_SETTINGS.purchases, ...(parsed.purchases || {}) },
+        print: { ...DEFAULT_SETTINGS.print, ...(parsed.print || {}) },
+        general: { ...DEFAULT_SETTINGS.general, ...(parsed.general || {}) }
+      };
+    } catch (e) {
+      console.error('Error fetching settings:', e);
+      return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    }
+  },
+
+  update: (firmId, sectionOrFull, updates) => {
+    const current = Setting.get(firmId);
+    let updated;
+    if (typeof sectionOrFull === 'string') {
+      updated = {
+        ...current,
+        [sectionOrFull]: {
+          ...(current[sectionOrFull] || {}),
+          ...updates
+        }
+      };
+    } else {
+      updated = {
+        ...current,
+        ...sectionOrFull
+      };
+    }
+
+    const stmt = db.prepare(`
+      INSERT INTO firm_settings (firm_id, settings_json, updated_at)
+      VALUES (?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(firm_id) DO UPDATE SET
+        settings_json = excluded.settings_json,
+        updated_at = CURRENT_TIMESTAMP
+    `);
+    stmt.run(firmId, JSON.stringify(updated));
+    return updated;
+  }
+};
+
 module.exports = {
   db,
   GST_STATES,
@@ -1080,5 +1155,7 @@ module.exports = {
   Invoice,
   Payment,
   Report,
-  Backup
+  Backup,
+  Setting,
+  DEFAULT_SETTINGS
 };

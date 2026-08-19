@@ -1,4 +1,4 @@
-const { Invoice, Party, Item, GST_STATES } = require('../models');
+const { Invoice, Party, Item, Setting, GST_STATES } = require('../models');
 
 const invoiceController = {
   listSales: (req, res) => {
@@ -29,6 +29,7 @@ const invoiceController = {
     const items = Item.getByFirmId(firmId);
     const nextInvoiceNumber = Invoice.getNextInvoiceNumber(firmId, 'sale');
     const today = new Date().toISOString().split('T')[0];
+    const settings = Setting.get(firmId);
 
     res.render('invoices/form', {
       title: 'Create Sales Invoice',
@@ -37,6 +38,7 @@ const invoiceController = {
       today,
       parties,
       items,
+      settings,
       gstStates: GST_STATES,
       activeMenu: 'sales'
     });
@@ -48,6 +50,7 @@ const invoiceController = {
     const items = Item.getByFirmId(firmId);
     const nextInvoiceNumber = Invoice.getNextInvoiceNumber(firmId, 'purchase');
     const today = new Date().toISOString().split('T')[0];
+    const settings = Setting.get(firmId);
 
     res.render('invoices/form', {
       title: 'Create Purchase Bill',
@@ -56,6 +59,7 @@ const invoiceController = {
       today,
       parties,
       items,
+      settings,
       gstStates: GST_STATES,
       activeMenu: 'purchases'
     });
@@ -231,6 +235,24 @@ const invoiceController = {
       }
 
       const netTaxable = Math.max(0, computedSubtotal - overallDiscAmt);
+
+      // Support for Final Amount GST Calculation Mode
+      const isFinalAmountGst = req.body.gst_calc_mode === 'final_amount';
+      if (isGst && isFinalAmountGst) {
+        const finalTaxRate = parseFloat(req.body.final_tax_rate) || 0;
+        if (isInter) {
+          computedTotalIgst = netTaxable * (finalTaxRate / 100);
+          computedTotalCgst = 0;
+          computedTotalSgst = 0;
+          computedTotalTax = computedTotalIgst;
+        } else {
+          computedTotalCgst = netTaxable * ((finalTaxRate / 2) / 100);
+          computedTotalSgst = netTaxable * ((finalTaxRate / 2) / 100);
+          computedTotalIgst = 0;
+          computedTotalTax = computedTotalCgst + computedTotalSgst;
+        }
+      }
+
       const unroundedGrand = netTaxable + computedTotalTax;
       const totalGrand = Math.round(unroundedGrand);
       const roundOffVal = totalGrand - unroundedGrand;

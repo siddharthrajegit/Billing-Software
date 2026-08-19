@@ -1,0 +1,339 @@
+<%- include('../partials/header') %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-gear-fill text-primary me-2"></i> Settings</h3>
+    <p class="text-muted small mb-0">Configure bill defaults, tax calculation engines, and printing preferences for <strong><%= activeFirm.name %></strong></p>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Side: Category Navigation Tabs -->
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="list-group list-group-flush rounded-3" id="settingsTabs" role="tablist">
+        <a class="list-group-item list-group-item-action d-flex align-items-center py-3 <%= activeTab === 'sales' ? 'active bg-primary border-primary text-white' : 'text-dark' %>" 
+           href="/settings?tab=sales">
+          <i class="bi bi-cart-check fs-5 me-3 <%= activeTab === 'sales' ? 'text-white' : 'text-primary' %>"></i>
+          <div>
+            <div class="fw-semibold">Sales Bill Settings</div>
+            <small class="<%= activeTab === 'sales' ? 'text-white-50' : 'text-muted' %>">GST, Calculation & Discounts</small>
+          </div>
+        </a>
+
+        <a class="list-group-item list-group-item-action d-flex align-items-center py-3 <%= activeTab === 'purchases' ? 'active bg-primary border-primary text-white' : 'text-dark' %>" 
+           href="/settings?tab=purchases">
+          <i class="bi bi-bag-plus fs-5 me-3 <%= activeTab === 'purchases' ? 'text-white' : 'text-success' %>"></i>
+          <div>
+            <div class="fw-semibold">Purchase Settings</div>
+            <small class="<%= activeTab === 'purchases' ? 'text-white-50' : 'text-muted' %>">Supplier Bill Defaults</small>
+          </div>
+        </a>
+
+        <a class="list-group-item list-group-item-action d-flex align-items-center py-3 <%= activeTab === 'print' ? 'active bg-primary border-primary text-white' : 'text-dark' %>" 
+           href="/settings?tab=print">
+          <i class="bi bi-printer fs-5 me-3 <%= activeTab === 'print' ? 'text-white' : 'text-info' %>"></i>
+          <div>
+            <div class="fw-semibold">Print & A4 Invoice</div>
+            <small class="<%= activeTab === 'print' ? 'text-white-50' : 'text-muted' %>">Bank, QR & Signatures</small>
+          </div>
+        </a>
+
+        <a class="list-group-item list-group-item-action d-flex align-items-center py-3 <%= activeTab === 'general' ? 'active bg-primary border-primary text-white' : 'text-dark' %>" 
+           href="/settings?tab=general">
+          <i class="bi bi-sliders fs-5 me-3 <%= activeTab === 'general' ? 'text-white' : 'text-warning' %>"></i>
+          <div>
+            <div class="fw-semibold">General Defaults</div>
+            <small class="<%= activeTab === 'general' ? 'text-white-50' : 'text-muted' %>">Currency & Regional</small>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Active Firm Switcher Quick Box -->
+    <div class="card shadow-sm border-0 bg-light p-3">
+      <div class="small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.72rem;">Settings Configured For</div>
+      <div class="fw-bold text-dark text-truncate"><%= activeFirm.name %></div>
+      <div class="small text-muted"><%= activeFirm.gstin ? 'GSTIN: ' + activeFirm.gstin : 'Non-GST Business' %></div>
+      <div class="mt-2 pt-2 border-top">
+        <a href="/firms" class="small text-decoration-none"><i class="bi bi-buildings me-1"></i> Switch / Manage Firms &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Settings Content Panels -->
+  <div class="col-md-9">
+    <% if (activeTab === 'sales') { %>
+      <!-- Sales Bill Settings Form -->
+      <form action="/settings" method="POST">
+        <input type="hidden" name="section" value="sales">
+
+        <div class="card shadow-sm border-0 mb-3">
+          <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-cart-check text-primary me-2"></i> Sales Bill Configuration</h5>
+            <small class="text-muted">Manage how sales invoices are constructed, calculated, and presented</small>
+          </div>
+          <div class="card-body p-4">
+
+            <!-- 1. GST & Non-GST Default Mode -->
+            <div class="mb-4 pb-3 border-bottom">
+              <label class="form-label fw-bold text-dark mb-1">
+                <i class="bi bi-toggle-on text-primary me-1"></i> Default Bill Tax Mode (GST vs Non-GST)
+              </label>
+              <p class="text-muted small mb-3">Choose whether new sales bills start with GST tax calculations enabled or in Non-GST format by default.</p>
+
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <div class="form-check card p-3 h-100 border <%= settings.sales.default_gst_type === 'gst' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="gstTypeGst" value="gst" <%= settings.sales.default_gst_type === 'gst' ? 'checked' : '' %>>
+                    <label class="form-check-label fw-semibold text-dark" for="gstTypeGst">
+                      <span class="badge bg-primary me-1">GST</span> GST Tax Invoice (Default)
+                    </label>
+                    <small class="text-muted d-block mt-1">Automatic CGST, SGST, IGST calculations and HSN code tracking on bills.</small>
+                  </div>
+                </div>
+
+                <div class="col-sm-6">
+                  <div class="form-check card p-3 h-100 border <%= settings.sales.default_gst_type === 'non_gst' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="gstTypeNonGst" value="non_gst" <%= settings.sales.default_gst_type === 'non_gst' ? 'checked' : '' %>>
+                    <label class="form-check-label fw-semibold text-dark" for="gstTypeNonGst">
+                      <span class="badge bg-light text-secondary border me-1">Non-GST</span> Non-GST / Retail Bill
+                    </label>
+                    <small class="text-muted d-block mt-1">Simple invoice with total amounts without requiring GST breakdown.</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. GST Calculation Mode: Separate GST vs GST on Final Amount -->
+            <div class="mb-4 pb-3 border-bottom">
+              <label class="form-label fw-bold text-dark mb-1">
+                <i class="bi bi-calculator text-primary me-1"></i> GST Calculation Method
+              </label>
+              <p class="text-muted small mb-3">Select how GST is calculated when creating a bill.</p>
+
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <div class="form-check card p-3 h-100 border <%= settings.sales.gst_calc_mode === 'separate' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="gst_calc_mode" id="calcSeparate" value="separate" <%= settings.sales.gst_calc_mode === 'separate' ? 'checked' : '' %>>
+                    <label class="form-check-label fw-semibold text-dark" for="calcSeparate">
+                      Separate GST (Item-Wise Tax Rates)
+                    </label>
+                    <small class="text-muted d-block mt-1">
+                      Each line item has its own GST rate (0%, 5%, 12%, 18%, 28%). Recommended for multi-tax product inventories.
+                    </small>
+                  </div>
+                </div>
+
+                <div class="col-sm-6">
+                  <div class="form-check card p-3 h-100 border <%= settings.sales.gst_calc_mode === 'final_amount' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="gst_calc_mode" id="calcFinal" value="final_amount" <%= settings.sales.gst_calc_mode === 'final_amount' ? 'checked' : '' %>>
+                    <label class="form-check-label fw-semibold text-dark" for="calcFinal">
+                      GST on Final Amount (Composite Tax)
+                    </label>
+                    <small class="text-muted d-block mt-1">
+                      Tax is computed uniformly on the net taxable subtotal after discounts rather than row-by-row.
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Add or Remove Discount Attribute / Column -->
+            <div class="mb-4 pb-3 border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <label class="form-label fw-bold text-dark mb-1">
+                    <i class="bi bi-percent text-primary me-1"></i> Line Item Discount Column
+                  </label>
+                  <p class="text-muted small mb-0">Show or hide the <strong>Discount % (Disc %)</strong> column in the bill items table during invoice creation.</p>
+                </div>
+                <div class="form-check form-switch fs-4">
+                  <input class="form-check-input" type="checkbox" name="enable_discount_column" value="1" id="enableDiscountToggle" <%= settings.sales.enable_discount_column ? 'checked' : '' %>>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Default Credit / Due Date Duration -->
+            <div class="mb-3">
+              <label class="form-label fw-bold text-dark mb-1">
+                <i class="bi bi-calendar-check text-primary me-1"></i> Default Payment Due Period
+              </label>
+              <div class="row align-items-center g-2">
+                <div class="col-sm-4 col-md-3">
+                  <div class="input-group input-group-sm">
+                    <input type="number" name="default_due_days" class="form-control" min="0" max="365" value="<%= settings.sales.default_due_days || 0 %>">
+                    <span class="input-group-text">Days</span>
+                  </div>
+                </div>
+                <div class="col-sm-8 col-md-9">
+                  <small class="text-muted">Set to 0 for immediate payment due on bill date.</small>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="card-footer bg-light p-3 d-flex justify-content-between align-items-center">
+            <span class="small text-muted"><i class="bi bi-info-circle me-1"></i> Changes apply immediately to new sales bills.</span>
+            <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+              <i class="bi bi-check2-circle me-1"></i> Save Sales Settings
+            </button>
+          </div>
+        </div>
+      </form>
+
+    <% } else if (activeTab === 'purchases') { %>
+      <!-- Purchase Bill Settings Form -->
+      <form action="/settings" method="POST">
+        <input type="hidden" name="section" value="purchases">
+
+        <div class="card shadow-sm border-0 mb-3">
+          <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-bag-plus text-success me-2"></i> Purchase Bill Configuration</h5>
+            <small class="text-muted">Manage defaults for inward supplier bills and stock entries</small>
+          </div>
+          <div class="card-body p-4">
+
+            <!-- Default Tax Mode -->
+            <div class="mb-4 pb-3 border-bottom">
+              <label class="form-label fw-bold text-dark mb-1">Default Purchase Bill Tax Mode</label>
+              <div class="row g-3 mt-1">
+                <div class="col-sm-6">
+                  <div class="form-check card p-3 h-100 border <%= settings.purchases.default_gst_type === 'gst' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="purGst" value="gst" <%= settings.purchases.default_gst_type === 'gst' ? 'checked' : '' %>>
+                    <label class="form-check-label fw-semibold" for="purGst">GST Purchase Bill</label>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check card p-3 h-100 border <%= settings.purchases.default_gst_type === 'non_gst' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="purNonGst" value="non_gst" <%= settings.purchases.default_gst_type === 'non_gst' ? 'checked' : '' %>>
+                    <label class="form-check-label fw-semibold" for="purNonGst">Non-GST / Cash Purchase</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Discount Column -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <label class="form-label fw-bold text-dark mb-1">Line Item Discount Column in Purchases</label>
+                  <p class="text-muted small mb-0">Show or hide supplier discount percentage column.</p>
+                </div>
+                <div class="form-check form-switch fs-4">
+                  <input class="form-check-input" type="checkbox" name="enable_discount_column" value="1" <%= settings.purchases.enable_discount_column ? 'checked' : '' %>>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="card-footer bg-light p-3 text-end">
+            <button type="submit" class="btn btn-success px-4 fw-semibold shadow-sm">
+              <i class="bi bi-check2-circle me-1"></i> Save Purchase Settings
+            </button>
+          </div>
+        </div>
+      </form>
+
+    <% } else if (activeTab === 'print') { %>
+      <!-- Print & A4 Settings Form -->
+      <form action="/settings" method="POST">
+        <input type="hidden" name="section" value="print">
+
+        <div class="card shadow-sm border-0 mb-3">
+          <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-printer text-info me-2"></i> Print & A4 Invoice Customization</h5>
+            <small class="text-muted">Control what appears on printed invoices and PDF exports</small>
+          </div>
+          <div class="card-body p-4">
+
+            <div class="mb-3 pb-3 border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <label class="form-label fw-bold text-dark mb-0">Display Bank Account Details</label>
+                  <div class="text-muted small">Show bank name, A/C number, and IFSC on invoice footer.</div>
+                </div>
+                <div class="form-check form-switch fs-4">
+                  <input class="form-check-input" type="checkbox" name="show_bank_details" value="1" <%= settings.print.show_bank_details ? 'checked' : '' %>>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3 pb-3 border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <label class="form-label fw-bold text-dark mb-0">Display Dynamic UPI QR Code</label>
+                  <div class="text-muted small">Generate dynamic UPI QR code on bill for instant customer scanning.</div>
+                </div>
+                <div class="form-check form-switch fs-4">
+                  <input class="form-check-input" type="checkbox" name="show_upi_qr" value="1" <%= settings.print.show_upi_qr ? 'checked' : '' %>>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3 pb-3 border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <label class="form-label fw-bold text-dark mb-0">Display Authorized Signatory Box</label>
+                  <div class="text-muted small">Include signature and stamp placeholder at bottom right.</div>
+                </div>
+                <div class="form-check form-switch fs-4">
+                  <input class="form-check-input" type="checkbox" name="show_signature" value="1" <%= settings.print.show_signature ? 'checked' : '' %>>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold text-dark mb-1">Default Invoice Footer Notes</label>
+              <textarea name="footer_notes" class="form-control" rows="2" placeholder="e.g. Thank you for your business!"><%= settings.print.footer_notes || '' %></textarea>
+            </div>
+
+          </div>
+          <div class="card-footer bg-light p-3 text-end">
+            <button type="submit" class="btn btn-info text-white px-4 fw-semibold shadow-sm">
+              <i class="bi bi-check2-circle me-1"></i> Save Print Settings
+            </button>
+          </div>
+        </div>
+      </form>
+
+    <% } else if (activeTab === 'general') { %>
+      <!-- General Settings Form -->
+      <form action="/settings" method="POST">
+        <input type="hidden" name="section" value="general">
+
+        <div class="card shadow-sm border-0 mb-3">
+          <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-sliders text-warning me-2"></i> General System Preferences</h5>
+            <small class="text-muted">Regional formatting and currency symbols</small>
+          </div>
+          <div class="card-body p-4">
+
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label fw-bold text-dark mb-1">Currency Symbol</label>
+                <input type="text" name="currency_symbol" class="form-control form-control-sm" value="<%= settings.general.currency_symbol || '₹' %>">
+              </div>
+
+              <div class="col-sm-6">
+                <label class="form-label fw-bold text-dark mb-1">Date Format</label>
+                <select name="date_format" class="form-select form-select-sm">
+                  <option value="YYYY-MM-DD" <%= settings.general.date_format === 'YYYY-MM-DD' ? 'selected' : '' %>>YYYY-MM-DD (2026-08-19)</option>
+                  <option value="DD-MM-YYYY" <%= settings.general.date_format === 'DD-MM-YYYY' ? 'selected' : '' %>>DD-MM-YYYY (19-08-2026)</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+          <div class="card-footer bg-light p-3 text-end">
+            <button type="submit" class="btn btn-warning px-4 fw-semibold shadow-sm">
+              <i class="bi bi-check2-circle me-1"></i> Save General Settings
+            </button>
+          </div>
+        </div>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

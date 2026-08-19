@@ -1,7 +1,27 @@
 <%- include('../partials/header', { fluidContainer: true }) %>
 
-<form action="/invoices/create" method="POST" id="invoiceForm" data-firm-state-code="<%= activeFirm.state_code || '' %>">
+<% 
+  const currentSettings = typeof settings !== 'undefined' && settings ? settings : { sales: { default_gst_type: 'gst', gst_calc_mode: 'separate', enable_discount_column: true, default_due_days: 0 } };
+  const billSettings = (invoiceType === 'purchase' && currentSettings.purchases) ? currentSettings.purchases : currentSettings.sales;
+  const isGstDefault = billSettings.default_gst_type !== 'non_gst';
+  const isSeparateGst = billSettings.gst_calc_mode !== 'final_amount';
+  const showDiscountCol = billSettings.enable_discount_column !== false;
+  
+  let defaultDueDate = '';
+  if (billSettings.default_due_days && billSettings.default_due_days > 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + parseInt(billSettings.default_due_days, 10));
+    defaultDueDate = d.toISOString().split('T')[0];
+  }
+%>
+
+<form action="/invoices/create" method="POST" id="invoiceForm" 
+  data-firm-state-code="<%= activeFirm.state_code || '' %>"
+  data-default-gst="<%= billSettings.default_gst_type %>"
+  data-gst-calc-mode="<%= billSettings.gst_calc_mode %>"
+  data-enable-discount="<%= showDiscountCol ? '1' : '0' %>">
   <input type="hidden" name="type" value="<%= invoiceType %>">
+  <input type="hidden" name="gst_calc_mode" id="gstCalcModeInput" value="<%= billSettings.gst_calc_mode %>">
 
   <!-- Top Action Header -->
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
@@ -10,9 +30,14 @@
         <i class="bi <%= invoiceType === 'sale' ? 'bi-cart-check text-success' : 'bi-bag-plus text-primary' %> me-2"></i>
         <%= invoiceType === 'sale' ? 'Create Sales Invoice' : 'Record Purchase Bill' %>
       </h3>
-      <span class="badge bg-primary" id="gstModeBadge">GST Tax Invoice</span>
+      <span class="badge <%= isGstDefault ? 'bg-primary' : 'bg-secondary' %>" id="gstModeBadge">
+        <%= isGstDefault ? (isSeparateGst ? 'GST Tax Invoice (Separate Item GST)' : 'GST Tax Invoice (Final Amount GST)') : 'Non-GST Retail Bill' %>
+      </span>
     </div>
     <div class="d-flex align-items-center gap-2">
+      <a href="/settings?tab=<%= invoiceType === 'sale' ? 'sales' : 'purchases' %>" class="btn btn-outline-secondary btn-sm" title="Bill Settings">
+        <i class="bi bi-gear me-1"></i> Bill Settings
+      </a>
       <a href="<%= invoiceType === 'sale' ? '/sales' : '/purchases' %>" class="btn btn-outline-secondary btn-sm">Cancel</a>
       <button type="submit" class="btn btn-success btn-sm px-3 shadow-sm fw-semibold">
         <i class="bi bi-check2-circle me-1"></i> Save & Generate Bill
@@ -39,7 +64,7 @@
         <!-- Due Date -->
         <div class="col-sm-6 col-md-2">
           <label class="form-label small mb-1">Due Date</label>
-          <input type="date" class="form-control form-control-sm" name="due_date">
+          <input type="date" class="form-control form-control-sm" name="due_date" value="<%= defaultDueDate %>">
         </div>
 
         <!-- GST & Interstate Toggles -->
@@ -47,7 +72,7 @@
           <label class="form-label small mb-1 text-muted">Tax & GST Settings</label>
           <div class="d-flex flex-wrap gap-3 mt-1">
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="isGstToggle" name="is_gst_bill" value="1" checked>
+              <input class="form-check-input" type="checkbox" id="isGstToggle" name="is_gst_bill" value="1" <%= isGstDefault ? 'checked' : '' %>>
               <label class="form-check-label small fw-semibold" for="isGstToggle">GST Bill</label>
             </div>
             <div class="form-check form-switch">
@@ -151,8 +176,8 @@
               <th style="width: 80px;" class="text-end">Qty</th>
               <th style="width: 90px;">Unit</th>
               <th style="width: 110px;" class="text-end">Rate (₹)</th>
-              <th style="width: 80px;" class="text-end">Disc %</th>
-              <th style="width: 110px;" class="gst-col">Tax Rate</th>
+              <th style="width: 80px;" class="text-end discount-col <%= !showDiscountCol ? 'd-none' : '' %>">Disc %</th>
+              <th style="width: 110px;" class="gst-col <%= (!isGstDefault || !isSeparateGst) ? 'd-none' : '' %>">Tax Rate</th>
               <th style="width: 120px;" class="text-end">Amount (₹)</th>
               <th style="width: 40px;" class="text-center"></th>
             </tr>
@@ -241,6 +266,22 @@
 
           <!-- GST Summary (Collapsible / Toggleable) -->
           <div id="gstSummarySection">
+            <!-- Composite Final Amount GST Rate Selector (if mode is final_amount) -->
+            <div class="row g-2 align-items-center mb-2 <%= isSeparateGst ? 'd-none' : '' %>" id="finalGstRateRow">
+              <div class="col-6">
+                <span class="text-muted small fw-semibold">GST Rate on Final Amount:</span>
+              </div>
+              <div class="col-6">
+                <select name="final_tax_rate" id="finalTaxRateSelect" class="form-select form-select-sm">
+                  <option value="0">0% (Tax Exempt)</option>
+                  <option value="5">5% GST</option>
+                  <option value="12">12% GST</option>
+                  <option value="18" selected>18% GST</option>
+                  <option value="28">28% GST</option>
+                </select>
+              </div>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center mb-1 text-muted small" id="cgstSgstSummaryRow">
               <span>CGST + SGST:</span>
               <span class="fw-medium" id="displayTax">₹ 0.00</span>

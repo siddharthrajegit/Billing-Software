@@ -1,5 +1,5 @@
 /**
- * Invoice Dynamic Calculation & Real-Time GST Engine
+ * Invoice Dynamic Calculation & Real-Time GST Engine with Multi-Mode Settings Support
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,9 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const isInterstateToggle = document.getElementById('isInterstateToggle');
   const partySelect = document.getElementById('partySelect');
 
-  // Firm State Code (attached via data attribute on form)
+  // Form Configuration & Settings
   const invoiceForm = document.getElementById('invoiceForm');
   const firmStateCode = invoiceForm ? invoiceForm.dataset.firmStateCode || '' : '';
+  const defaultGstMode = invoiceForm ? invoiceForm.dataset.defaultGst || 'gst' : 'gst';
+  const gstCalcMode = invoiceForm ? invoiceForm.dataset.gstCalcMode || 'separate' : 'separate';
+  const enableDiscount = invoiceForm ? invoiceForm.dataset.enableDiscount !== '0' : true;
+  const isSeparateGst = (gstCalcMode !== 'final_amount');
 
   // Summary Inputs
   const subtotalInput = document.getElementById('subtotalInput');
@@ -19,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const discountValueInput = document.getElementById('discountValueInput');
   const discountAmountInput = document.getElementById('discountAmountInput');
   const taxableAmountInput = document.getElementById('taxableAmountInput');
+  const finalTaxRateSelect = document.getElementById('finalTaxRateSelect');
   const cgstAmountInput = document.getElementById('cgstAmountInput');
   const sgstAmountInput = document.getElementById('sgstAmountInput');
   const igstAmountInput = document.getElementById('igstAmountInput');
@@ -77,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tr.className = 'invoice-item-row align-middle';
 
     const isGst = isGstToggle ? isGstToggle.checked : true;
-    const isInterstate = isInterstateToggle ? isInterstateToggle.checked : false;
+    const showRowTaxRate = isGst && isSeparateGst;
 
     tr.innerHTML = `
       <td class="text-center row-num text-muted small">${rowCount + 1}</td>
@@ -106,16 +111,16 @@ document.addEventListener('DOMContentLoaded', () => {
       <td style="width: 110px;">
         <input type="number" name="rate" class="form-control form-control-sm row-rate text-end" min="0" step="any" placeholder="0.00" value="${itemData.rate || itemData.sale_price || ''}" required>
       </td>
-      <td style="width: 80px;">
+      <td style="width: 80px;" class="discount-col ${!enableDiscount ? 'd-none' : ''}">
         <input type="number" name="item_discount_percent" class="form-control form-control-sm row-discount-pct text-end" min="0" max="100" step="any" placeholder="0%" value="${itemData.discount_percent || '0'}">
         <input type="hidden" name="item_discount_amount" class="row-discount-amt" value="0">
       </td>
-      <td style="width: 110px;" class="gst-col ${!isGst ? 'd-none' : ''}">
+      <td style="width: 110px;" class="gst-col ${!showRowTaxRate ? 'd-none' : ''}">
         <select name="item_tax_rate" class="form-select form-select-sm row-tax-rate">
           <option value="0" ${parseFloat(itemData.tax_rate) === 0 ? 'selected' : ''}>0%</option>
           <option value="5" ${parseFloat(itemData.tax_rate) === 5 ? 'selected' : ''}>5%</option>
           <option value="12" ${parseFloat(itemData.tax_rate) === 12 ? 'selected' : ''}>12%</option>
-          <option value="18" ${parseFloat(itemData.tax_rate) === 18 ? 'selected' : ''}>18%</option>
+          <option value="18" ${parseFloat(itemData.tax_rate) === 18 || !itemData.tax_rate ? 'selected' : ''}>18%</option>
           <option value="28" ${parseFloat(itemData.tax_rate) === 28 ? 'selected' : ''}>28%</option>
         </select>
         <input type="hidden" name="item_taxable" class="row-taxable" value="0">
@@ -153,14 +158,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Autocomplete on name input
     if (itemNameInput) {
       itemNameInput.addEventListener('input', () => {
-        const val = itemNameInput.value.trim().toLowerCase();
         const option = document.querySelector(`#itemsDataList option[value="${itemNameInput.value}"]`);
         if (option) {
           row.querySelector('.row-item-id').value = option.dataset.id || '';
           row.querySelector('.row-hsn').value = option.dataset.hsn || '';
           row.querySelector('.row-unit').value = option.dataset.unit || 'PCS';
           row.querySelector('.row-rate').value = option.dataset.price || '0';
-          row.querySelector('.row-tax-rate').value = option.dataset.tax || '0';
+          if (row.querySelector('.row-tax-rate')) {
+            row.querySelector('.row-tax-rate').value = option.dataset.tax || '0';
+          }
         }
         updateRowCalculation(row);
         updateAllCalculations();
@@ -205,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateRowCalculation(row) {
     const qty = parseFloat(row.querySelector('.row-qty').value) || 0;
     const rate = parseFloat(row.querySelector('.row-rate').value) || 0;
-    const discPct = parseFloat(row.querySelector('.row-discount-pct').value) || 0;
+    const discPct = enableDiscount ? (parseFloat(row.querySelector('.row-discount-pct').value) || 0) : 0;
     const taxRate = parseFloat(row.querySelector('.row-tax-rate').value) || 0;
 
     const isGst = isGstToggle ? isGstToggle.checked : true;
@@ -218,13 +224,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const discAmt = gross * (discPct / 100);
     const taxable = Math.max(0, gross - discAmt);
 
-    // 3. Tax calculation
+    // 3. Tax calculation (only if Separate GST mode is active)
     let cgstRate = 0, cgstAmt = 0;
     let sgstRate = 0, sgstAmt = 0;
     let igstRate = 0, igstAmt = 0;
     let totalTax = 0;
 
-    if (isGst && taxRate > 0) {
+    if (isGst && isSeparateGst && taxRate > 0) {
       if (isInterstate) {
         igstRate = taxRate;
         igstAmt = taxable * (igstRate / 100);
@@ -272,16 +278,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalSgst = 0;
     let totalIgst = 0;
     let totalTax = 0;
-    let totalGrossRows = 0;
+
+    const isGst = isGstToggle ? isGstToggle.checked : true;
+    const isInterstate = isInterstateToggle ? isInterstateToggle.checked : false;
 
     rows.forEach(r => {
       const calc = updateRowCalculation(r);
-      totalGrossRows += calc.gross;
       totalTaxable += calc.taxable;
-      totalCgst += calc.cgstAmt;
-      totalSgst += calc.sgstAmt;
-      totalIgst += calc.igstAmt;
-      totalTax += calc.totalTax;
+      if (isSeparateGst) {
+        totalCgst += calc.cgstAmt;
+        totalSgst += calc.sgstAmt;
+        totalIgst += calc.igstAmt;
+        totalTax += calc.totalTax;
+      }
     });
 
     totalSubtotal = totalTaxable;
@@ -300,6 +309,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (discountAmountInput) discountAmountInput.value = overallDiscAmt.toFixed(2);
 
     const netBeforeTax = Math.max(0, totalSubtotal - overallDiscAmt);
+
+    // If GST on Final Amount Mode is active, compute composite tax on netBeforeTax
+    if (isGst && !isSeparateGst) {
+      const finalTaxRate = finalTaxRateSelect ? parseFloat(finalTaxRateSelect.value) || 0 : 0;
+      if (isInterstate) {
+        totalIgst = netBeforeTax * (finalTaxRate / 100);
+        totalCgst = 0;
+        totalSgst = 0;
+        totalTax = totalIgst;
+      } else {
+        totalCgst = netBeforeTax * ((finalTaxRate / 2) / 100);
+        totalSgst = netBeforeTax * ((finalTaxRate / 2) / 100);
+        totalIgst = 0;
+        totalTax = totalCgst + totalSgst;
+      }
+    } else if (!isGst) {
+      totalTax = 0;
+      totalCgst = 0;
+      totalSgst = 0;
+      totalIgst = 0;
+    }
+
     const unroundedGrand = netBeforeTax + totalTax;
 
     // Round off
@@ -340,14 +371,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const gstCols = document.querySelectorAll('.gst-col');
       const gstSummarySection = document.getElementById('gstSummarySection');
       const gstBadge = document.getElementById('gstModeBadge');
+      const finalGstRateRow = document.getElementById('finalGstRateRow');
 
       gstCols.forEach(col => {
-        if (isGst) {
+        if (isGst && isSeparateGst) {
           col.classList.remove('d-none');
         } else {
           col.classList.add('d-none');
         }
       });
+
+      if (finalGstRateRow) {
+        if (isGst && !isSeparateGst) finalGstRateRow.classList.remove('d-none');
+        else finalGstRateRow.classList.add('d-none');
+      }
 
       if (gstSummarySection) {
         if (isGst) gstSummarySection.classList.remove('d-none');
@@ -355,8 +392,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (gstBadge) {
-        gstBadge.textContent = isGst ? 'GST Tax Invoice' : 'Non-GST / Bill of Supply';
-        gstBadge.className = isGst ? 'badge bg-primary' : 'badge bg-secondary';
+        if (isGst) {
+          gstBadge.textContent = isSeparateGst ? 'GST Tax Invoice (Separate Item GST)' : 'GST Tax Invoice (Final Amount GST)';
+          gstBadge.className = 'badge bg-primary';
+        } else {
+          gstBadge.textContent = 'Non-GST Retail Bill';
+          gstBadge.className = 'badge bg-secondary';
+        }
       }
 
       updateAllCalculations();
@@ -384,9 +426,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Overall Discount and Payment Input listeners
+  // Overall Discount, Final Tax Rate and Payment Input listeners
   if (discountTypeSelect) discountTypeSelect.addEventListener('change', updateAllCalculations);
   if (discountValueInput) discountValueInput.addEventListener('input', updateAllCalculations);
+  if (finalTaxRateSelect) finalTaxRateSelect.addEventListener('change', updateAllCalculations);
   if (paidAmountInput) paidAmountInput.addEventListener('input', updateAllCalculations);
 
   // Quick action: Paid in full button

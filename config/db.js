@@ -193,8 +193,18 @@ function initDatabase() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    -- Extensible Firm Settings (Sales, Purchases, Taxes, Print, General)
+    CREATE TABLE IF NOT EXISTS firm_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      firm_id INTEGER NOT NULL UNIQUE,
+      settings_json TEXT DEFAULT '{}',
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (firm_id) REFERENCES firms(id) ON DELETE CASCADE
+    );
+
     -- Indexes for performance
     CREATE INDEX IF NOT EXISTS idx_firms_user ON firms(user_id);
+    CREATE INDEX IF NOT EXISTS idx_firm_settings ON firm_settings(firm_id);
     CREATE INDEX IF NOT EXISTS idx_parties_firm ON parties(firm_id);
     CREATE INDEX IF NOT EXISTS idx_items_firm ON items(firm_id);
     CREATE INDEX IF NOT EXISTS idx_invoices_firm ON invoices(firm_id);

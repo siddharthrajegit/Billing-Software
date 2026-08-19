@@ -16,6 +16,7 @@ const invoiceRoutes = require('./routes/invoiceRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const backupRoutes = require('./routes/backupRoutes');
+const settingRoutes = require('./routes/settingRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -71,6 +72,7 @@ app.use('/parties', partyRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/reports', reportRoutes);
 app.use('/backup', backupRoutes);
+app.use('/settings', settingRoutes);
 app.use('/', invoiceRoutes);
 
 // Dashboard Route (Root redirect / Dashboard)
