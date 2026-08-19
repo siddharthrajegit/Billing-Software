@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= typeof title !== 'undefined' ? title : 'Vyapar Lite - Billing & Accounting' %></title>
+  <title><%= typeof title !== 'undefined' ? title + ' - RACE FINANCE' : 'RACE FINANCE - Billing & Accounting' %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
         <div class="brand-badge bg-primary text-white rounded-3 me-2 d-flex align-items-center justify-content-center shadow-sm">
           <i class="bi bi-receipt-cutoff"></i>
         </div>
-        <span>Vyapar<span class="text-primary-light">Lite</span></span>
+        <span>RACE <span class="text-primary-light">FINANCE</span></span>
       </a>
       <button type="button" class="btn-close btn-close-white d-lg-none btn-sidebar-toggle" aria-label="Close Sidebar"></button>
     </div>
@@ -170,7 +170,7 @@
       </button>
       <div class="fw-bold d-flex align-items-center">
         <span class="badge bg-primary me-1"><i class="bi bi-receipt-cutoff"></i></span>
-        <span><%= activeFirm ? activeFirm.name : 'VyaparLite' %></span>
+        <span><%= activeFirm ? activeFirm.name : 'RACE FINANCE' %></span>
       </div>
       <a href="/sales/create" class="btn btn-success btn-sm">
         <i class="bi bi-plus-lg"></i> Bill

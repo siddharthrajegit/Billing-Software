@@ -10,7 +10,7 @@ async function runTests() {
   if (!user) {
     user = User.create({
       name: 'Ramesh Sharma',
-      email: 'admin@vyaparlite.com',
+      email: 'admin@racefinance.com',
       phone: '9876543210',
       password
     });

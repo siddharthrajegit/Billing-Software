@@ -47,14 +47,14 @@ async function uploadBackupToDrive(userId, backupData, customFileName = null) {
   const auth = getOAuth2Client(userId);
   const drive = google.drive({ version: 'v3', auth });
 
-  const fileName = customFileName || `VyaparLite_Backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+  const fileName = customFileName || `RaceFinance_Backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
   const fileContent = typeof backupData === 'string' ? backupData : JSON.stringify(backupData, null, 2);
 
-  // 1. Check or create "Vyapar Lite Backups" folder
+  // 1. Check or create "RACE FINANCE Backups" folder
   let folderId = null;
   try {
     const searchRes = await drive.files.list({
-      q: "mimeType='application/vnd.google-apps.folder' and name='Vyapar Lite Backups' and trashed=false",
+      q: "mimeType='application/vnd.google-apps.folder' and name='RACE FINANCE Backups' and trashed=false",
       fields: 'files(id, name)',
       spaces: 'drive'
     });
@@ -64,7 +64,7 @@ async function uploadBackupToDrive(userId, backupData, customFileName = null) {
     } else {
       const folderRes = await drive.files.create({
         requestBody: {
-          name: 'Vyapar Lite Backups',
+          name: 'RACE FINANCE Backups',
           mimeType: 'application/vnd.google-apps.folder'
         },
         fields: 'id'

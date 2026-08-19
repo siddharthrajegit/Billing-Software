@@ -19,7 +19,7 @@ const backupController = {
     try {
       const backupData = Backup.exportFullBackup(req.user.id);
       const dateStr = new Date().toISOString().split('T')[0];
-      const filename = `VyaparLite_Backup_${dateStr}_${Date.now()}.json`;
+      const filename = `RaceFinance_Backup_${dateStr}_${Date.now()}.json`;
 
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -68,7 +68,7 @@ const backupController = {
 
       const backupData = Backup.exportFullBackup(req.user.id);
       const dateStr = new Date().toISOString().split('T')[0];
-      const filename = `VyaparLite_Backup_${dateStr}_${Date.now()}.json`;
+      const filename = `RaceFinance_Backup_${dateStr}_${Date.now()}.json`;
 
       const uploadResult = await uploadBackupToDrive(req.user.id, backupData, filename);
 

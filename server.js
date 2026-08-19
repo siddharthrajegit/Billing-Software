@@ -35,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Session configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'vyapar_lite_super_secret_key_2026',
+    secret: process.env.SESSION_SECRET || 'race_finance_super_secret_key_2026',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -105,7 +105,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`=======================================================`);
-  console.log(`🚀 Vyapar Lite Billing Server is running!`);
+  console.log(`🚀 RACE FINANCE Server is running!`);
   console.log(`🌐 Local URL: http://localhost:${PORT}`);
   console.log(`=======================================================`);
 });

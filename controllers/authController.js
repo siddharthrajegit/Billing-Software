@@ -9,7 +9,7 @@ const authController = {
     }
     const hasGoogleAuth = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CLIENT_ID !== 'your_google_client_id_here');
     res.render('auth/login', {
-      title: 'Sign In - Vyapar Lite',
+      title: 'Sign In - RACE FINANCE',
       hasGoogleAuth
     });
   },
@@ -37,7 +37,7 @@ const authController = {
     }
     const hasGoogleAuth = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CLIENT_ID !== 'your_google_client_id_here');
     res.render('auth/register', {
-      title: 'Create Business Account - Vyapar Lite',
+      title: 'Create Business Account - RACE FINANCE',
       hasGoogleAuth
     });
   },

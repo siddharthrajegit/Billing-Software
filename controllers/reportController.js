@@ -6,7 +6,7 @@ const reportController = {
     const summary = Report.getDashboardSummary(firmId);
 
     res.render('dashboard', {
-      title: 'Dashboard - Vyapar Lite',
+      title: 'Dashboard - RACE FINANCE',
       summary,
       firm: req.activeFirm,
       activeMenu: 'dashboard'

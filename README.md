@@ -1,4 +1,4 @@
-# Vyapar Lite — Small Business Billing, Inventory & Accounting System
+# RACE FINANCE — Small Business Billing, Inventory & Accounting System
 
 A fast, lightweight, and modern web application for small businesses and traders to create GST and Non-GST sales/purchase bills, manage items and stock, track customer/vendor ledgers, operate multiple business firms, and perform 1-click cloud backups to Google Drive.
 
@@ -40,7 +40,7 @@ A fast, lightweight, and modern web application for small businesses and traders
 7. **Backup & Google Drive Cloud Sync**:
    - **1-Click Local JSON Export**: Download complete offline database backup as `.json`.
    - **JSON Restore**: Upload and import backups into any account.
-   - **1-Click Google Drive Sync**: Direct upload to a `"Vyapar Lite Backups"` folder in the user's Google Drive via Google Drive API v3.
+   - **1-Click Google Drive Sync**: Direct upload to a `"RACE FINANCE Backups"` folder in the user's Google Drive via Google Drive API v3.
 
 8. **Authentication**:
    - Manual Sign-In & Sign-Up using Phone Number or Email + Password (encrypted via `bcryptjs`).
@@ -63,7 +63,7 @@ npm run seed
 
 **Default Test Credentials:**
 - **Phone:** `9876543210`
-- **Email:** `admin@vyaparlite.com`
+- **Email:** `admin@racefinance.com`
 - **Password:** `admin123`
 
 ### 3. Start the Server
@@ -82,7 +82,7 @@ Create or edit `.env` in the root folder:
 ```env
 PORT=3000
 NODE_ENV=development
-SESSION_SECRET=vyapar_biller_secret_key_2026_production_ready
+SESSION_SECRET=race_finance_secret_key_2026_production_ready
 
 # Google OAuth 2.0 & Google Drive Backup (Optional)
 # Obtain from Google Cloud Console (https://console.cloud.google.com):
