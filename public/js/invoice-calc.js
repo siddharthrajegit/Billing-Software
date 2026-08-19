@@ -33,18 +33,137 @@ document.addEventListener('DOMContentLoaded', () => {
   const paidAmountInput = document.getElementById('paidAmountInput');
   const balanceDueInput = document.getElementById('balanceDueInput');
 
-  // Party Selection Auto-fill
-  if (partySelect) {
-    partySelect.addEventListener('change', (e) => {
-      const selectedOption = partySelect.options[partySelect.selectedIndex];
-      if (!selectedOption || !selectedOption.value) return;
+  // Party Live Search & Autocomplete Engine
+  const partySearchInput = document.getElementById('partySearchInput');
+  const partySearchResults = document.getElementById('partySearchResults');
+  const btnClearPartySearch = document.getElementById('btnClearPartySearch');
 
-      const name = selectedOption.dataset.name || '';
-      const phone = selectedOption.dataset.phone || '';
-      const gstin = selectedOption.dataset.gstin || '';
-      const address = selectedOption.dataset.address || '';
-      const state = selectedOption.dataset.state || '';
-      const stateCode = selectedOption.dataset.stateCode || '';
+  // Cache parties from partySelect options
+  const partiesList = [];
+  if (partySelect) {
+    Array.from(partySelect.options).forEach(opt => {
+      if (opt.value) {
+        partiesList.push({
+          id: opt.value,
+          name: opt.dataset.name || '',
+          phone: opt.dataset.phone || '',
+          gstin: opt.dataset.gstin || '',
+          address: opt.dataset.address || '',
+          state: opt.dataset.state || '',
+          stateCode: opt.dataset.stateCode || ''
+        });
+      }
+    });
+  }
+
+  function selectParty(p) {
+    const nameInput = document.getElementById('partyNameInput');
+    const phoneInput = document.getElementById('partyPhoneInput');
+    const gstinInput = document.getElementById('partyGstinInput');
+    const addressInput = document.getElementById('partyAddressInput');
+    const stateInput = document.getElementById('partyStateInput');
+    const stateCodeInput = document.getElementById('partyStateCodeInput');
+
+    if (nameInput) nameInput.value = p.name;
+    if (phoneInput) phoneInput.value = p.phone;
+    if (gstinInput) gstinInput.value = p.gstin;
+    if (addressInput) addressInput.value = p.address;
+    if (stateInput) stateInput.value = p.state;
+    if (stateCodeInput) stateCodeInput.value = p.stateCode;
+
+    if (partySelect) partySelect.value = p.id;
+    if (partySearchInput) {
+      partySearchInput.value = p.name + (p.phone ? ` (${p.phone})` : '');
+    }
+
+    if (btnClearPartySearch) btnClearPartySearch.style.display = 'block';
+    if (partySearchResults) partySearchResults.classList.add('d-none');
+
+    // Auto check Interstate if state codes differ
+    if (isInterstateToggle && firmStateCode && p.stateCode) {
+      isInterstateToggle.checked = (firmStateCode !== p.stateCode);
+    }
+
+    updateAllCalculations();
+  }
+
+  function renderPartyResults(matches) {
+    if (!partySearchResults) return;
+    partySearchResults.innerHTML = '';
+
+    if (matches.length === 0) {
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'list-group-item text-muted small p-2 text-center';
+      emptyDiv.textContent = 'No matching parties found. You can enter details manually.';
+      partySearchResults.appendChild(emptyDiv);
+      partySearchResults.classList.remove('d-none');
+      return;
+    }
+
+    matches.forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'list-group-item list-group-item-action p-2 text-start';
+      btn.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <strong class="text-dark">${p.name}</strong>
+          ${p.phone ? `<span class="badge bg-light text-secondary border"><i class="bi bi-telephone me-1"></i>${p.phone}</span>` : ''}
+        </div>
+        <div class="small text-muted d-flex justify-content-between mt-1">
+          <span>${p.gstin ? `<span class="text-primary fw-medium">GSTIN: ${p.gstin}</span>` : (p.address || p.state || 'Manual Entry')}</span>
+          ${p.state ? `<span class="text-secondary">${p.state}</span>` : ''}
+        </div>
+      `;
+
+      btn.addEventListener('click', () => {
+        selectParty(p);
+      });
+
+      partySearchResults.appendChild(btn);
+    });
+
+    partySearchResults.classList.remove('d-none');
+  }
+
+  if (partySearchInput) {
+    partySearchInput.addEventListener('focus', () => {
+      const query = partySearchInput.value.trim().toLowerCase();
+      const matches = partiesList.filter(p => 
+        !query ||
+        p.name.toLowerCase().includes(query) ||
+        p.phone.toLowerCase().includes(query) ||
+        p.gstin.toLowerCase().includes(query)
+      );
+      renderPartyResults(matches);
+    });
+
+    partySearchInput.addEventListener('input', () => {
+      const query = partySearchInput.value.trim().toLowerCase();
+      const matches = partiesList.filter(p => 
+        !query ||
+        p.name.toLowerCase().includes(query) ||
+        p.phone.toLowerCase().includes(query) ||
+        p.gstin.toLowerCase().includes(query)
+      );
+      renderPartyResults(matches);
+      if (btnClearPartySearch) {
+        btnClearPartySearch.style.display = query.length > 0 ? 'block' : 'none';
+      }
+    });
+
+    partySearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && partySearchResults) {
+        partySearchResults.classList.add('d-none');
+      }
+    });
+  }
+
+  if (btnClearPartySearch) {
+    btnClearPartySearch.addEventListener('click', () => {
+      if (partySearchInput) partySearchInput.value = '';
+      if (partySelect) partySelect.value = '';
+      btnClearPartySearch.style.display = 'none';
+      if (partySearchResults) partySearchResults.classList.add('d-none');
 
       const nameInput = document.getElementById('partyNameInput');
       const phoneInput = document.getElementById('partyPhoneInput');
@@ -53,19 +172,37 @@ document.addEventListener('DOMContentLoaded', () => {
       const stateInput = document.getElementById('partyStateInput');
       const stateCodeInput = document.getElementById('partyStateCodeInput');
 
-      if (nameInput) nameInput.value = name;
-      if (phoneInput) phoneInput.value = phone;
-      if (gstinInput) gstinInput.value = gstin;
-      if (addressInput) addressInput.value = address;
-      if (stateInput) stateInput.value = state;
-      if (stateCodeInput) stateCodeInput.value = stateCode;
+      if (nameInput) nameInput.value = '';
+      if (phoneInput) phoneInput.value = '';
+      if (gstinInput) gstinInput.value = '';
+      if (addressInput) addressInput.value = '';
+      if (stateInput) stateInput.value = '';
+      if (stateCodeInput) stateCodeInput.value = '';
+      if (partySearchInput) partySearchInput.focus();
+    });
+  }
 
-      // Auto check Interstate if state codes differ and both are present
-      if (isInterstateToggle && firmStateCode && stateCode) {
-        isInterstateToggle.checked = (firmStateCode !== stateCode);
-      }
+  // Close dropdown on click outside
+  document.addEventListener('click', (e) => {
+    if (partySearchResults && !partySearchResults.contains(e.target) && partySearchInput && !partySearchInput.contains(e.target)) {
+      partySearchResults.classList.add('d-none');
+    }
+  });
 
-      updateAllCalculations();
+  // Fallback for direct select change
+  if (partySelect) {
+    partySelect.addEventListener('change', (e) => {
+      const selectedOption = partySelect.options[partySelect.selectedIndex];
+      if (!selectedOption || !selectedOption.value) return;
+      selectParty({
+        id: selectedOption.value,
+        name: selectedOption.dataset.name || '',
+        phone: selectedOption.dataset.phone || '',
+        gstin: selectedOption.dataset.gstin || '',
+        address: selectedOption.dataset.address || '',
+        state: selectedOption.dataset.state || '',
+        stateCode: selectedOption.dataset.stateCode || ''
+      });
     });
   }
 

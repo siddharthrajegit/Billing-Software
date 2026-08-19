@@ -99,10 +99,24 @@
     </div>
     <div class="card-body p-3">
       <div class="row g-3">
-        <!-- Party Quick Dropdown -->
+        <!-- Party Quick Searchable Dropdown -->
         <div class="col-md-4">
           <label class="form-label small mb-1">Select Existing Party</label>
-          <select class="form-select form-select-sm" id="partySelect" name="party_id">
+          <div class="position-relative">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+              <input type="text" class="form-control form-control-sm" id="partySearchInput" placeholder="Type name, phone or GSTIN to search..." autocomplete="off">
+              <button class="btn btn-outline-secondary" type="button" id="btnClearPartySearch" title="Clear selection" style="display: none;">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+            <!-- Live Party Search Results Dropdown -->
+            <div id="partySearchResults" class="list-group shadow position-absolute w-100 mt-1 d-none" style="max-height: 250px; overflow-y: auto; z-index: 1050; border-radius: 6px; font-size: 0.85rem;">
+              <!-- Populated dynamically via JS -->
+            </div>
+          </div>
+          <!-- Underlying select element for state and form submission -->
+          <select class="d-none" id="partySelect" name="party_id">
             <option value="">-- Choose Party or Enter Manually --</option>
             <% parties.forEach(p => { %>
               <option value="<%= p.id %>"
