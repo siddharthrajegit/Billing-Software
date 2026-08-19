@@ -82,19 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
 
       const numberToCopy = btn.getAttribute('data-number') || '9672847747';
-      const badge = btn.querySelector('.copy-status-badge');
+      const originalHTML = btn.innerHTML;
 
       function showCopiedState() {
-        if (badge) {
-          const originalText = badge.innerHTML;
-          const originalClass = badge.className;
-          badge.className = 'badge bg-success text-white ms-1 copy-status-badge';
-          badge.innerHTML = '<i class="bi bi-check2 me-1"></i>Copied!';
-          setTimeout(() => {
-            badge.className = originalClass;
-            badge.innerHTML = originalText;
-          }, 2000);
-        }
+        btn.innerHTML = '<i class="bi bi-check2-circle text-success me-1"></i> <span class="text-success fw-bold">+91 9672847747 (Copied!)</span>';
+        setTimeout(() => {
+          btn.innerHTML = originalHTML;
+        }, 1800);
       }
 
       if (navigator.clipboard && window.isSecureContext) {
