@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const firmController = require('../controllers/firmController');
-const { ensureAuthenticated } = require('../middleware/auth');
+const { ensureUserOnly } = require('../middleware/auth');
 const upload = require('../config/upload');
 
-router.use(ensureAuthenticated);
+router.use(ensureUserOnly);
 
 router.get('/', firmController.listFirms);
 router.get('/create', firmController.getCreate);

@@ -5,7 +5,7 @@ const { User } = require('../models');
 const authController = {
   getLogin: (req, res) => {
     if (req.isAuthenticated()) {
-      return res.redirect('/dashboard');
+      return res.redirect(req.user.role === 'admin' ? '/admin' : '/dashboard');
     }
     const hasGoogleAuth = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CLIENT_ID !== 'your_google_client_id_here');
     res.render('auth/login', {
@@ -24,7 +24,8 @@ const authController = {
       req.logIn(user, (err) => {
         if (err) return next(err);
         req.flash('success_msg', `Welcome back, ${user.name}!`);
-        const redirectUrl = req.session.returnTo || '/dashboard';
+        const defaultRedirect = user.role === 'admin' ? '/admin' : '/dashboard';
+        const redirectUrl = req.session.returnTo || defaultRedirect;
         delete req.session.returnTo;
         res.redirect(redirectUrl);
       });
@@ -32,76 +33,13 @@ const authController = {
   },
 
   getRegister: (req, res) => {
-    if (req.isAuthenticated()) {
-      return res.redirect('/dashboard');
-    }
-    const hasGoogleAuth = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CLIENT_ID !== 'your_google_client_id_here');
-    res.render('auth/register', {
-      title: 'Create Business Account - RACE FINANCE',
-      hasGoogleAuth
-    });
+    req.flash('info_msg', 'Direct online registration is disabled. Accounts are manually provisioned by the administrator. Please contact support on WhatsApp to request your trial credentials.');
+    res.redirect('/auth/login');
   },
 
-  postRegister: async (req, res) => {
-    try {
-      const { name, email, phone, password, confirm_password } = req.body;
-
-      if (!name || !password || (!email && !phone)) {
-        req.flash('error_msg', 'Please provide your name, password, and at least an email or phone number.');
-        return res.redirect('/auth/register');
-      }
-
-      if (password !== confirm_password) {
-        req.flash('error_msg', 'Passwords do not match.');
-        return res.redirect('/auth/register');
-      }
-
-      if (password.length < 6) {
-        req.flash('error_msg', 'Password must be at least 6 characters long.');
-        return res.redirect('/auth/register');
-      }
-
-      // Check existing email
-      if (email && email.trim()) {
-        const existingEmail = User.findByEmail(email.trim());
-        if (existingEmail) {
-          req.flash('error_msg', 'An account with this email address already exists. Please login.');
-          return res.redirect('/auth/login');
-        }
-      }
-
-      // Check existing phone
-      if (phone && phone.trim()) {
-        const existingPhone = User.findByPhone(phone.trim());
-        if (existingPhone) {
-          req.flash('error_msg', 'An account with this phone number already exists. Please login.');
-          return res.redirect('/auth/login');
-        }
-      }
-
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      const newUser = User.create({
-        name: name.trim(),
-        email: email ? email.trim() : null,
-        phone: phone ? phone.trim() : null,
-        password: hashedPassword
-      });
-
-      req.logIn(newUser, (err) => {
-        if (err) {
-          req.flash('error_msg', 'Registration successful, but automatic sign-in failed. Please log in.');
-          return res.redirect('/auth/login');
-        }
-        req.flash('success_msg', 'Account created successfully! Please register your first firm to begin.');
-        res.redirect('/firms/create');
-      });
-    } catch (err) {
-      console.error('Registration error:', err);
-      req.flash('error_msg', 'An error occurred during registration. Please try again.');
-      res.redirect('/auth/register');
-    }
+  postRegister: (req, res) => {
+    req.flash('error_msg', 'Direct online registration is disabled. Please contact support on WhatsApp to request access.');
+    res.redirect('/auth/login');
   },
 
   googleAuth: (req, res, next) => {
@@ -122,7 +60,8 @@ const authController = {
       failureFlash: 'Google sign-in failed or was cancelled.'
     })(req, res, () => {
       req.flash('success_msg', `Signed in with Google successfully!`);
-      const redirectUrl = req.session.returnTo || '/dashboard';
+      const defaultRedirect = req.user.role === 'admin' ? '/admin' : '/dashboard';
+      const redirectUrl = req.session.returnTo || defaultRedirect;
       delete req.session.returnTo;
       res.redirect(redirectUrl);
     });

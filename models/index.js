@@ -49,17 +49,35 @@ const User = {
   findByEmailOrPhone: (identifier) => {
     return db.prepare('SELECT * FROM users WHERE LOWER(email) = LOWER(?) OR phone = ?').get(identifier, identifier);
   },
-  create: ({ name, email, phone, password, google_id, avatar }) => {
+  create: ({ name, email, phone, password, google_id, avatar, role, status }) => {
     const stmt = db.prepare(`
-      INSERT INTO users (name, email, phone, password, google_id, avatar)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO users (name, email, phone, password, google_id, avatar, role, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    const info = stmt.run(name, email || null, phone || null, password || null, google_id || null, avatar || null);
+    const info = stmt.run(
+      name, email || null, phone || null, password || null,
+      google_id || null, avatar || null, role || 'user', status || 'active'
+    );
     return db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
   },
   updateGoogleId: (id, google_id, avatar) => {
     db.prepare('UPDATE users SET google_id = ?, avatar = COALESCE(avatar, ?) WHERE id = ?').run(google_id, avatar, id);
     return User.findById(id);
+  },
+  updateRole: (id, role) => {
+    db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, id);
+    return User.findById(id);
+  },
+  updateStatus: (id, status) => {
+    db.prepare('UPDATE users SET status = ? WHERE id = ?').run(status, id);
+    return User.findById(id);
+  },
+  updatePassword: (id, hashedPassword) => {
+    db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hashedPassword, id);
+    return User.findById(id);
+  },
+  delete: (id) => {
+    return db.prepare('DELETE FROM users WHERE id = ?').run(id);
   }
 };
 
@@ -519,6 +537,23 @@ const Item = {
   }
 };
 
+function numeric(value, fallback = 0) {
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function adjustInvoiceItemStock(itemId, firmId, invoiceType, quantity, direction = 1) {
+  if (!itemId) return;
+  const qtyChange = numeric(quantity);
+  if (!qtyChange) return;
+
+  const typeMultiplier = invoiceType === 'sale' ? -1 : invoiceType === 'purchase' ? 1 : 0;
+  if (!typeMultiplier) return;
+
+  db.prepare('UPDATE items SET current_stock = current_stock + ? WHERE id = ? AND firm_id = ?')
+    .run(typeMultiplier * direction * qtyChange, itemId, firmId);
+}
+
 const Invoice = {
   getByFirmId: (firmId, type = 'sale') => {
     return db.prepare(`
@@ -602,15 +637,7 @@ const Invoice = {
           parseFloat(item.total_amount) || 0
         );
 
-        // Adjust stock if linked to an inventory item
-        if (item.item_id) {
-          const qtyChange = parseFloat(item.quantity) || 0;
-          if (type === 'sale') {
-            db.prepare('UPDATE items SET current_stock = current_stock - ? WHERE id = ? AND firm_id = ?').run(qtyChange, item.item_id, firm_id);
-          } else if (type === 'purchase') {
-            db.prepare('UPDATE items SET current_stock = current_stock + ? WHERE id = ? AND firm_id = ?').run(qtyChange, item.item_id, firm_id);
-          }
-        }
+        adjustInvoiceItemStock(item.item_id, firm_id, type, item.quantity);
       }
 
       // 3. If paid_amount > 0 at time of billing, record payment receipt/voucher automatically
@@ -640,6 +667,120 @@ const Invoice = {
 
     return createTx();
   },
+  update: (id, firmId, invoiceData, itemsData) => {
+    const updateTx = db.transaction(() => {
+      const existingInvoice = Invoice.getById(id, firmId);
+      if (!existingInvoice) return null;
+
+      // 1. Revert previous inventory stock changes
+      for (const oldItem of existingInvoice.items) {
+        adjustInvoiceItemStock(oldItem.item_id, firmId, existingInvoice.type, oldItem.quantity, -1);
+      }
+
+      // 2. Delete existing line items
+      db.prepare('DELETE FROM invoice_items WHERE invoice_id = ?').run(id);
+
+      // 3. Update invoice header
+      const {
+        type, invoice_number, invoice_date, due_date, party_id,
+        party_name, party_phone, party_gstin, party_address, party_state, party_state_code,
+        is_gst_bill, is_interstate, subtotal, discount_type, discount_value, discount_amount,
+        taxable_amount, cgst_amount, sgst_amount, igst_amount, tax_amount, round_off,
+        grand_total, paid_amount, balance_due, payment_status, payment_mode, notes, terms
+      } = invoiceData;
+
+      db.prepare(`
+        UPDATE invoices SET
+          type = ?, invoice_number = ?, invoice_date = ?, due_date = ?, party_id = ?,
+          party_name = ?, party_phone = ?, party_gstin = ?, party_address = ?, party_state = ?, party_state_code = ?,
+          is_gst_bill = ?, is_interstate = ?, subtotal = ?, discount_type = ?, discount_value = ?, discount_amount = ?,
+          taxable_amount = ?, cgst_amount = ?, sgst_amount = ?, igst_amount = ?, tax_amount = ?, round_off = ?,
+          grand_total = ?, paid_amount = ?, balance_due = ?, payment_status = ?, payment_mode = ?, notes = ?, terms = ?
+        WHERE id = ? AND firm_id = ?
+      `).run(
+        type || existingInvoice.type, invoice_number, invoice_date, due_date || null,
+        party_id || null, party_name, party_phone || null, party_gstin || null,
+        party_address || null, party_state || null, party_state_code || null,
+        is_gst_bill ? 1 : 0, is_interstate ? 1 : 0, parseFloat(subtotal) || 0,
+        discount_type || 'percentage', parseFloat(discount_value) || 0, parseFloat(discount_amount) || 0,
+        parseFloat(taxable_amount) || 0, parseFloat(cgst_amount) || 0, parseFloat(sgst_amount) || 0,
+        parseFloat(igst_amount) || 0, parseFloat(tax_amount) || 0, parseFloat(round_off) || 0,
+        parseFloat(grand_total) || 0, parseFloat(paid_amount) || 0, parseFloat(balance_due) || 0,
+        payment_status || 'unpaid', payment_mode || 'cash', notes || null, terms || null,
+        id, firmId
+      );
+
+      // 4. Insert updated line items & apply new stock adjustments
+      const itemStmt = db.prepare(`
+        INSERT INTO invoice_items (
+          invoice_id, item_id, item_name, hsn_code, unit, quantity, rate,
+          discount_percent, discount_amount, taxable_amount, tax_rate,
+          cgst_rate, cgst_amount, sgst_rate, sgst_amount, igst_rate, igst_amount, total_amount
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      for (const item of itemsData) {
+        itemStmt.run(
+          id, item.item_id || null, item.item_name, item.hsn_code || null,
+          item.unit || 'PCS', parseFloat(item.quantity) || 1, parseFloat(item.rate) || 0,
+          parseFloat(item.discount_percent) || 0, parseFloat(item.discount_amount) || 0,
+          parseFloat(item.taxable_amount) || 0, parseFloat(item.tax_rate) || 0,
+          parseFloat(item.cgst_rate) || 0, parseFloat(item.cgst_amount) || 0,
+          parseFloat(item.sgst_rate) || 0, parseFloat(item.sgst_amount) || 0,
+          parseFloat(item.igst_rate) || 0, parseFloat(item.igst_amount) || 0,
+          parseFloat(item.total_amount) || 0
+        );
+
+        adjustInvoiceItemStock(item.item_id, firmId, type, item.quantity);
+      }
+
+      // 5. Update or recreate payment record if paid_amount changed
+      const paidAmt = parseFloat(paid_amount) || 0;
+      const existingPayment = db.prepare('SELECT id FROM payments WHERE invoice_id = ? AND firm_id = ?').get(id, firmId);
+
+      if (paidAmt > 0 && party_id) {
+        const payType = type === 'purchase' ? 'payment_out' : 'payment_in';
+        if (existingPayment) {
+          db.prepare(`
+            UPDATE payments SET
+              payment_date = ?, party_id = ?, amount = ?, payment_mode = ?,
+              reference_no = ?, notes = ?
+            WHERE id = ? AND firm_id = ?
+          `).run(
+            invoice_date, party_id, paidAmt, payment_mode || 'cash',
+            invoice_number, `Paid on bill ${invoice_number}`,
+            existingPayment.id, firmId
+          );
+        } else {
+          const payNum = Payment.getNextPaymentNumber(firmId, payType);
+          db.prepare(`
+            INSERT INTO payments (
+              firm_id, type, payment_number, payment_date, party_id,
+              invoice_id, amount, payment_mode, reference_no, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(
+            firmId, payType, payNum, invoice_date, party_id,
+            id, paidAmt, payment_mode || 'cash',
+            invoice_number, `Paid on bill ${invoice_number}`
+          );
+        }
+      } else if (existingPayment && paidAmt === 0) {
+        db.prepare('DELETE FROM payments WHERE id = ? AND firm_id = ?').run(existingPayment.id, firmId);
+      }
+
+      // Synchronize FIFO allocations across all bills for this party
+      if (party_id) {
+        Party.syncFIFOSettlement(party_id, firmId);
+      }
+      if (existingInvoice.party_id && existingInvoice.party_id !== party_id) {
+        Party.syncFIFOSettlement(existingInvoice.party_id, firmId);
+      }
+
+      return Invoice.getById(id, firmId);
+    });
+
+    return updateTx();
+  },
   delete: (id, firmId) => {
     const deleteTx = db.transaction(() => {
       const invoice = Invoice.getById(id, firmId);
@@ -649,14 +790,7 @@ const Invoice = {
 
       // Revert item inventory stock
       for (const item of invoice.items) {
-        if (item.item_id) {
-          const qty = parseFloat(item.quantity) || 0;
-          if (invoice.type === 'sale') {
-            db.prepare('UPDATE items SET current_stock = current_stock + ? WHERE id = ? AND firm_id = ?').run(qty, item.item_id, firm_id);
-          } else if (invoice.type === 'purchase') {
-            db.prepare('UPDATE items SET current_stock = current_stock - ? WHERE id = ? AND firm_id = ?').run(qty, item.item_id, firm_id);
-          }
-        }
+        adjustInvoiceItemStock(item.item_id, firmId, invoice.type, item.quantity, -1);
       }
 
       // Also delete any linked payment made during bill creation
@@ -693,6 +827,18 @@ const Payment = {
       WHERE p.firm_id = ?
       ORDER BY p.payment_date DESC, p.id DESC
     `).all(firmId);
+  },
+  getById: (id, firmId) => {
+    return db.prepare(`
+      SELECT p.*, pt.name as party_name, pt.type as party_type, pt.phone as party_phone,
+             pt.billing_address as party_address, pt.gstin as party_gstin,
+             pt.state as party_state, pt.state_code as party_state_code,
+             inv.invoice_number as linked_invoice_number
+      FROM payments p
+      JOIN parties pt ON p.party_id = pt.id
+      LEFT JOIN invoices inv ON p.invoice_id = inv.id
+      WHERE p.id = ? AND p.firm_id = ?
+    `).get(id, firmId);
   },
   getNextPaymentNumber: (firmId, type = 'payment_in') => {
     const prefix = type === 'payment_in' ? 'REC' : 'PAY';
@@ -1145,6 +1291,291 @@ const Setting = {
   }
 };
 
+const Admin = {
+  getDashboardMetrics: () => {
+    // 1. Users
+    const userStats = db.prepare(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+        SUM(CASE WHEN status = 'suspended' THEN 1 ELSE 0 END) as suspended,
+        SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as admins
+      FROM users
+    `).get();
+
+    // 2. Firms
+    const firmStats = db.prepare(`
+      SELECT COUNT(*) as total FROM firms
+    `).get();
+
+    // 3. Invoices & Financials
+    const invoiceStats = db.prepare(`
+      SELECT 
+        COUNT(*) as total_count,
+        SUM(CASE WHEN type = 'sale' THEN 1 ELSE 0 END) as sales_count,
+        SUM(CASE WHEN type = 'purchase' THEN 1 ELSE 0 END) as purchase_count,
+        SUM(CASE WHEN type = 'sale' THEN grand_total ELSE 0 END) as total_sales_amount,
+        SUM(CASE WHEN type = 'purchase' THEN grand_total ELSE 0 END) as total_purchase_amount,
+        SUM(paid_amount) as total_paid_amount,
+        SUM(balance_due) as total_balance_due
+      FROM invoices
+    `).get();
+
+    // 4. Payments
+    const paymentStats = db.prepare(`
+      SELECT 
+        COUNT(*) as total_payments,
+        SUM(CASE WHEN type = 'payment_in' THEN amount ELSE 0 END) as total_received,
+        SUM(CASE WHEN type = 'payment_out' THEN amount ELSE 0 END) as total_paid_out
+      FROM payments
+    `).get();
+
+    // 5. Items
+    const itemStats = db.prepare(`
+      SELECT COUNT(*) as total_items FROM items
+    `).get();
+
+    // 6. Parties
+    const partyStats = db.prepare(`
+      SELECT COUNT(*) as total_parties FROM parties
+    `).get();
+
+    return {
+      users: userStats || { total: 0, active: 0, suspended: 0, admins: 0 },
+      firms: firmStats || { total: 0 },
+      invoices: invoiceStats || { total_count: 0, sales_count: 0, purchase_count: 0, total_sales_amount: 0, total_purchase_amount: 0, total_paid_amount: 0, total_balance_due: 0 },
+      payments: paymentStats || { total_payments: 0, total_received: 0, total_paid_out: 0 },
+      items: itemStats || { total_items: 0 },
+      parties: partyStats || { total_parties: 0 }
+    };
+  },
+
+  getAllUsers: (search = '', role = '', status = '') => {
+    let query = `
+      SELECT 
+        u.id, u.name, u.email, u.phone, u.role, u.status, u.avatar, u.created_at,
+        COUNT(DISTINCT f.id) as firms_count,
+        COUNT(DISTINCT i.id) as invoices_count,
+        COALESCE(SUM(CASE WHEN i.type = 'sale' THEN i.grand_total ELSE 0 END), 0) as total_turnover
+      FROM users u
+      LEFT JOIN firms f ON f.user_id = u.id
+      LEFT JOIN invoices i ON i.firm_id = f.id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (search && search.trim()) {
+      query += ` AND (LOWER(u.name) LIKE ? OR LOWER(COALESCE(u.email, '')) LIKE ? OR u.phone LIKE ?)`;
+      const term = `%${search.trim().toLowerCase()}%`;
+      params.push(term, term, term);
+    }
+    if (role && role.trim()) {
+      query += ` AND u.role = ?`;
+      params.push(role.trim());
+    }
+    if (status && status.trim()) {
+      query += ` AND u.status = ?`;
+      params.push(status.trim());
+    }
+
+    query += ` GROUP BY u.id ORDER BY u.created_at DESC`;
+    return db.prepare(query).all(...params);
+  },
+
+  getUserDeepInfo: (userId) => {
+    const user = db.prepare('SELECT id, name, email, phone, role, status, avatar, created_at FROM users WHERE id = ?').get(userId);
+    if (!user) return null;
+
+    // 1. All firms owned by this user
+    const firms = db.prepare(`
+      SELECT f.*,
+        COUNT(DISTINCT p.id) as parties_count,
+        COUNT(DISTINCT it.id) as items_count,
+        COUNT(DISTINCT inv.id) as invoices_count,
+        COALESCE(SUM(CASE WHEN inv.type = 'sale' THEN inv.grand_total ELSE 0 END), 0) as total_turnover
+      FROM firms f
+      LEFT JOIN parties p ON p.firm_id = f.id
+      LEFT JOIN items it ON it.firm_id = f.id
+      LEFT JOIN invoices inv ON inv.firm_id = f.id
+      WHERE f.user_id = ?
+      GROUP BY f.id
+      ORDER BY f.created_at DESC
+    `).all(userId);
+
+    // 2. All parties/customers created by this user across their firms
+    const parties = db.prepare(`
+      SELECT p.*, f.name as firm_name
+      FROM parties p
+      JOIN firms f ON f.id = p.firm_id
+      WHERE f.user_id = ?
+      ORDER BY p.name ASC
+    `).all(userId);
+
+    // 3. All inventory items created by this user
+    const items = db.prepare(`
+      SELECT it.*, f.name as firm_name
+      FROM items it
+      JOIN firms f ON f.id = it.firm_id
+      WHERE f.user_id = ?
+      ORDER BY it.name ASC
+    `).all(userId);
+
+    // 4. All invoices created by this user
+    const invoices = db.prepare(`
+      SELECT inv.*, f.name as firm_name
+      FROM invoices inv
+      JOIN firms f ON f.id = inv.firm_id
+      WHERE f.user_id = ?
+      ORDER BY inv.created_at DESC
+      LIMIT 200
+    `).all(userId);
+
+    // 5. Overall user business financials summary
+    const financials = db.prepare(`
+      SELECT 
+        COUNT(DISTINCT inv.id) as total_invoices,
+        COALESCE(SUM(CASE WHEN inv.type = 'sale' THEN inv.grand_total ELSE 0 END), 0) as total_sales,
+        COALESCE(SUM(CASE WHEN inv.type = 'purchase' THEN inv.grand_total ELSE 0 END), 0) as total_purchases,
+        COALESCE(SUM(inv.paid_amount), 0) as total_paid,
+        COALESCE(SUM(inv.balance_due), 0) as total_due
+      FROM invoices inv
+      JOIN firms f ON f.id = inv.firm_id
+      WHERE f.user_id = ?
+    `).get(userId);
+
+    return { user, firms, parties, items, invoices, financials };
+  },
+
+  getAllFirms: (search = '') => {
+    let query = `
+      SELECT 
+        f.*,
+        u.name as owner_name,
+        u.email as owner_email,
+        u.phone as owner_phone,
+        COUNT(DISTINCT p.id) as parties_count,
+        COUNT(DISTINCT it.id) as items_count,
+        COUNT(DISTINCT inv.id) as invoices_count,
+        COALESCE(SUM(CASE WHEN inv.type = 'sale' THEN inv.grand_total ELSE 0 END), 0) as total_turnover
+      FROM firms f
+      JOIN users u ON u.id = f.user_id
+      LEFT JOIN parties p ON p.firm_id = f.id
+      LEFT JOIN items it ON it.firm_id = f.id
+      LEFT JOIN invoices inv ON inv.firm_id = f.id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (search && search.trim()) {
+      query += ` AND (LOWER(f.name) LIKE ? OR LOWER(COALESCE(f.gstin, '')) LIKE ? OR LOWER(u.name) LIKE ? OR LOWER(COALESCE(u.email, '')) LIKE ? OR u.phone LIKE ?)`;
+      const term = `%${search.trim().toLowerCase()}%`;
+      params.push(term, term, term, term, term);
+    }
+
+    query += ` GROUP BY f.id ORDER BY f.created_at DESC`;
+    return db.prepare(query).all(...params);
+  },
+
+  getAllInvoices: (filters = {}) => {
+    let query = `
+      SELECT 
+        inv.*,
+        f.name as firm_name,
+        u.name as owner_name,
+        u.phone as owner_phone,
+        u.email as owner_email
+      FROM invoices inv
+      JOIN firms f ON f.id = inv.firm_id
+      JOIN users u ON u.id = f.user_id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (filters.search) {
+      query += ` AND (inv.invoice_number LIKE ? OR LOWER(inv.party_name) LIKE ? OR LOWER(f.name) LIKE ? OR u.phone LIKE ? OR LOWER(u.name) LIKE ?)`;
+      const term = `%${filters.search.trim().toLowerCase()}%`;
+      params.push(term, term, term, term, term);
+    }
+    if (filters.type) {
+      query += ` AND inv.type = ?`;
+      params.push(filters.type);
+    }
+    if (filters.payment_status) {
+      query += ` AND inv.payment_status = ?`;
+      params.push(filters.payment_status);
+    }
+
+    query += ` ORDER BY inv.created_at DESC LIMIT 200`;
+    return db.prepare(query).all(...params);
+  },
+
+  getRecentActivities: (limit = 15) => {
+    const recentUsers = db.prepare(`
+      SELECT 'user_registered' as type, name as title, COALESCE(phone, email, 'New Account') as subtitle, created_at, id as entity_id
+      FROM users
+      ORDER BY created_at DESC LIMIT ?
+    `).all(limit);
+
+    const recentFirms = db.prepare(`
+      SELECT 'firm_created' as type, f.name as title, u.name as subtitle, f.created_at, f.id as entity_id
+      FROM firms f
+      JOIN users u ON u.id = f.user_id
+      ORDER BY f.created_at DESC LIMIT ?
+    `).all(limit);
+
+    const recentInvoices = db.prepare(`
+      SELECT 'invoice_created' as type, (inv.invoice_number || ' - ₹ ' || inv.grand_total) as title, (inv.party_name || ' (' || f.name || ')') as subtitle, inv.created_at, inv.id as entity_id
+      FROM invoices inv
+      JOIN firms f ON f.id = inv.firm_id
+      ORDER BY inv.created_at DESC LIMIT ?
+    `).all(limit);
+
+    const all = [...recentUsers, ...recentFirms, ...recentInvoices];
+    all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return all.slice(0, limit);
+  },
+
+  logAction: (adminId, adminName, action, targetType, targetId, details, ip) => {
+    db.prepare(`
+      INSERT INTO admin_audit_logs (admin_id, admin_name, action, target_type, target_id, details, ip_address)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(adminId || null, adminName || 'Admin', action, targetType || null, String(targetId || ''), details || null, ip || null);
+  },
+
+  getRecentLogs: (limit = 25) => {
+    return db.prepare(`SELECT * FROM admin_audit_logs ORDER BY created_at DESC LIMIT ?`).all(limit);
+  },
+
+  getPlatformSetting: (key, defaultValue = null) => {
+    const row = db.prepare('SELECT value FROM platform_settings WHERE key = ?').get(key);
+    return row ? row.value : defaultValue;
+  },
+
+  setPlatformSetting: (key, value) => {
+    db.prepare(`
+      INSERT INTO platform_settings (key, value, updated_at)
+      VALUES (?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
+    `).run(key, String(value));
+  },
+
+  getAllPlatformSettings: () => {
+    const rows = db.prepare('SELECT key, value FROM platform_settings').all();
+    const settings = {
+      max_firms_limit: '2',
+      max_upload_size_mb: '2',
+      platform_announcement: '',
+      platform_announcement_type: 'info',
+      enable_announcement: '0',
+      maintenance_mode: '0'
+    };
+    rows.forEach(r => {
+      settings[r.key] = r.value;
+    });
+    return settings;
+  }
+};
+
 module.exports = {
   db,
   GST_STATES,
@@ -1157,5 +1588,6 @@ module.exports = {
   Report,
   Backup,
   Setting,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  Admin
 };

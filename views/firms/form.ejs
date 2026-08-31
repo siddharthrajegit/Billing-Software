@@ -38,12 +38,22 @@
               <input type="text" class="form-control font-monospace text-uppercase" id="pan" name="pan" placeholder="e.g. ABCDE1234F" maxlength="10" value="<%= firm ? (firm.pan || '') : '' %>">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Business Logo</label>
-              <input type="file" class="form-control" name="logo" accept="image/*">
+              <label class="form-label">Business Logo <small class="text-muted">(JPG/PNG/WebP, Max 2MB)</small></label>
+              <input type="file" class="form-control" name="logo" accept=".jpg,.jpeg,.png,.webp">
               <% if (firm && firm.logo_path) { %>
                 <div class="mt-2 d-flex align-items-center">
                   <img src="<%= firm.logo_path %>" alt="Current Logo" class="rounded border me-2" height="36">
                   <span class="text-muted small">Current logo uploaded</span>
+                </div>
+              <% } %>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Authorized Signature / Stamp <small class="text-muted">(JPG/PNG, Max 2MB)</small></label>
+              <input type="file" class="form-control" name="signature" accept=".jpg,.jpeg,.png,.webp">
+              <% if (firm && firm.signature_path) { %>
+                <div class="mt-2 d-flex align-items-center">
+                  <img src="<%= firm.signature_path %>" alt="Current Signature" class="rounded border me-2" height="36">
+                  <span class="text-muted small">Current signature uploaded</span>
                 </div>
               <% } %>
             </div>

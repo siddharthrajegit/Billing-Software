@@ -56,20 +56,136 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function selectParty(p) {
-    const nameInput = document.getElementById('partyNameInput');
-    const phoneInput = document.getElementById('partyPhoneInput');
-    const gstinInput = document.getElementById('partyGstinInput');
-    const addressInput = document.getElementById('partyAddressInput');
-    const stateInput = document.getElementById('partyStateInput');
-    const stateCodeInput = document.getElementById('partyStateCodeInput');
+  // Strict Form Inputs
+  const invoiceNumberInput = document.getElementById('invoiceNumberInput');
+  const partyNameInput = document.getElementById('partyNameInput');
+  const partyPhoneInput = document.getElementById('partyPhoneInput');
+  const partyGstinInput = document.getElementById('partyGstinInput');
+  const partyAddressInput = document.getElementById('partyAddressInput');
+  const partyStateSelect = document.getElementById('partyStateSelect');
+  const partyStateCodeInput = document.getElementById('partyStateCodeInput');
+  const phoneValidationStatus = document.getElementById('phoneValidationStatus');
+  const gstinValidationStatus = document.getElementById('gstinValidationStatus');
 
-    if (nameInput) nameInput.value = p.name;
-    if (phoneInput) phoneInput.value = p.phone;
-    if (gstinInput) gstinInput.value = p.gstin;
-    if (addressInput) addressInput.value = p.address;
-    if (stateInput) stateInput.value = p.state;
-    if (stateCodeInput) stateCodeInput.value = p.stateCode;
+  // 1. Strict Live Validation Helpers
+  function validatePhoneField() {
+    if (!partyPhoneInput || !phoneValidationStatus) return true;
+    const val = partyPhoneInput.value.trim();
+    if (val.length === 0) {
+      phoneValidationStatus.textContent = 'Exact 10 digits required';
+      phoneValidationStatus.className = 'form-text small text-muted';
+      partyPhoneInput.classList.remove('is-invalid', 'is-valid');
+      return true;
+    }
+    if (val.length === 10 && /^[0-9]{10}$/.test(val)) {
+      phoneValidationStatus.textContent = '✓ Valid 10-digit mobile number';
+      phoneValidationStatus.className = 'form-text small text-success fw-semibold';
+      partyPhoneInput.classList.remove('is-invalid');
+      partyPhoneInput.classList.add('is-valid');
+      return true;
+    } else {
+      phoneValidationStatus.textContent = `❌ Must be exactly 10 digits (currently ${val.length}/10)`;
+      phoneValidationStatus.className = 'form-text small text-danger fw-semibold';
+      partyPhoneInput.classList.add('is-invalid');
+      partyPhoneInput.classList.remove('is-valid');
+      return false;
+    }
+  }
+
+  function validateGstinField() {
+    if (!partyGstinInput || !gstinValidationStatus) return true;
+    const val = partyGstinInput.value.trim().toUpperCase();
+    if (val.length === 0) {
+      gstinValidationStatus.textContent = 'Exact 15 letters & numbers';
+      gstinValidationStatus.className = 'form-text small text-muted';
+      partyGstinInput.classList.remove('is-invalid', 'is-valid');
+      return true;
+    }
+    if (val.length === 15 && /^[0-9A-Z]{15}$/.test(val)) {
+      gstinValidationStatus.textContent = '✓ Valid 15-character GSTIN';
+      gstinValidationStatus.className = 'form-text small text-success fw-semibold';
+      partyGstinInput.classList.remove('is-invalid');
+      partyGstinInput.classList.add('is-valid');
+      return true;
+    } else {
+      gstinValidationStatus.textContent = `❌ Must be exactly 15 characters (currently ${val.length}/15)`;
+      gstinValidationStatus.className = 'form-text small text-danger fw-semibold';
+      partyGstinInput.classList.add('is-invalid');
+      partyGstinInput.classList.remove('is-valid');
+      return false;
+    }
+  }
+
+  // 2. Strict Input Listeners
+  if (invoiceNumberInput) {
+    invoiceNumberInput.addEventListener('input', () => {
+      invoiceNumberInput.value = invoiceNumberInput.value.replace(/[^0-9]/g, '');
+    });
+  }
+
+  if (partyPhoneInput) {
+    partyPhoneInput.addEventListener('input', () => {
+      partyPhoneInput.value = partyPhoneInput.value.replace(/[^0-9]/g, '');
+      validatePhoneField();
+    });
+    partyPhoneInput.addEventListener('blur', validatePhoneField);
+  }
+
+  if (partyGstinInput) {
+    partyGstinInput.addEventListener('input', () => {
+      partyGstinInput.value = partyGstinInput.value.toUpperCase().replace(/[^0-9A-Z]/g, '');
+      validateGstinField();
+
+      // Auto-detect and select state from 2-digit GSTIN prefix
+      if (partyGstinInput.value.length >= 2 && partyStateSelect) {
+        const stateCodePrefix = partyGstinInput.value.slice(0, 2);
+        const matchedOption = Array.from(partyStateSelect.options).find(opt => opt.dataset.code === stateCodePrefix);
+        if (matchedOption) {
+          partyStateSelect.value = matchedOption.value;
+          if (partyStateCodeInput) partyStateCodeInput.value = stateCodePrefix;
+          if (isInterstateToggle && firmStateCode) {
+            isInterstateToggle.checked = (firmStateCode !== stateCodePrefix);
+          }
+        }
+      }
+    });
+    partyGstinInput.addEventListener('blur', validateGstinField);
+  }
+
+  // 3. State Dropdown Auto-Sync Code & Interstate
+  if (partyStateSelect) {
+    partyStateSelect.addEventListener('change', () => {
+      const selectedOption = partyStateSelect.options[partyStateSelect.selectedIndex];
+      const stateCode = selectedOption ? (selectedOption.dataset.code || '') : '';
+      if (partyStateCodeInput) {
+        partyStateCodeInput.value = stateCode;
+      }
+      if (isInterstateToggle && firmStateCode && stateCode) {
+        isInterstateToggle.checked = (firmStateCode !== stateCode);
+        isInterstateToggle.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
+  function selectParty(p) {
+    if (partyNameInput) partyNameInput.value = p.name || '';
+    if (partyPhoneInput) partyPhoneInput.value = p.phone || '';
+    if (partyGstinInput) partyGstinInput.value = p.gstin || '';
+    if (partyAddressInput) partyAddressInput.value = p.address || '';
+
+    if (partyStateSelect) {
+      if (p.state) {
+        partyStateSelect.value = p.state;
+      } else if (p.stateCode) {
+        const opt = Array.from(partyStateSelect.options).find(o => o.dataset.code === p.stateCode);
+        if (opt) partyStateSelect.value = opt.value;
+      }
+    }
+
+    if (partyStateCodeInput) {
+      const selectedOption = partyStateSelect ? partyStateSelect.options[partyStateSelect.selectedIndex] : null;
+      partyStateCodeInput.value = p.stateCode || (selectedOption ? selectedOption.dataset.code : '');
+    }
 
     if (partySelect) partySelect.value = p.id;
     if (partySearchInput) {
@@ -79,9 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnClearPartySearch) btnClearPartySearch.style.display = 'block';
     if (partySearchResults) partySearchResults.classList.add('d-none');
 
+    validatePhoneField();
+    validateGstinField();
+
     // Auto check Interstate if state codes differ
-    if (isInterstateToggle && firmStateCode && p.stateCode) {
-      isInterstateToggle.checked = (firmStateCode !== p.stateCode);
+    const currentCustStateCode = partyStateCodeInput ? partyStateCodeInput.value : p.stateCode;
+    if (isInterstateToggle && firmStateCode && currentCustStateCode) {
+      isInterstateToggle.checked = (firmStateCode !== currentCustStateCode);
     }
 
     updateAllCalculations();
@@ -165,19 +285,16 @@ document.addEventListener('DOMContentLoaded', () => {
       btnClearPartySearch.style.display = 'none';
       if (partySearchResults) partySearchResults.classList.add('d-none');
 
-      const nameInput = document.getElementById('partyNameInput');
-      const phoneInput = document.getElementById('partyPhoneInput');
-      const gstinInput = document.getElementById('partyGstinInput');
-      const addressInput = document.getElementById('partyAddressInput');
-      const stateInput = document.getElementById('partyStateInput');
-      const stateCodeInput = document.getElementById('partyStateCodeInput');
+      if (partyNameInput) partyNameInput.value = '';
+      if (partyPhoneInput) partyPhoneInput.value = '';
+      if (partyGstinInput) partyGstinInput.value = '';
+      if (partyAddressInput) partyAddressInput.value = '';
+      if (partyStateSelect) partyStateSelect.value = '';
+      if (partyStateCodeInput) partyStateCodeInput.value = '';
 
-      if (nameInput) nameInput.value = '';
-      if (phoneInput) phoneInput.value = '';
-      if (gstinInput) gstinInput.value = '';
-      if (addressInput) addressInput.value = '';
-      if (stateInput) stateInput.value = '';
-      if (stateCodeInput) stateCodeInput.value = '';
+      validatePhoneField();
+      validateGstinField();
+
       if (partySearchInput) partySearchInput.focus();
     });
   }
@@ -221,19 +338,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const isGst = isGstToggle ? isGstToggle.checked : true;
     const showRowTaxRate = isGst && isSeparateGst;
 
+    const itemId = itemData.item_id || itemData.id || '';
+    const itemName = itemData.item_name || itemData.name || '';
+    const itemRate = (itemData.rate !== undefined && itemData.rate !== null && itemData.rate !== '') ? itemData.rate : (itemData.sale_price || '');
+    const itemTaxRate = itemData.tax_rate !== undefined && itemData.tax_rate !== null ? parseFloat(itemData.tax_rate) : 18;
+
     tr.innerHTML = `
-      <td class="text-center row-num text-muted small">${rowCount + 1}</td>
-      <td style="min-width: 200px;">
-        <input type="hidden" name="item_id" class="row-item-id" value="${itemData.id || ''}">
-        <input type="text" name="item_name" class="form-control form-control-sm row-item-name" placeholder="Item name / Description" value="${itemData.name || ''}" list="itemsDataList" required>
+      <td class="text-center row-num text-muted small p-1">${rowCount + 1}</td>
+      <td>
+        <input type="hidden" name="item_id" class="row-item-id" value="${itemId}">
+        <input type="text" name="item_name" class="form-control form-control-sm row-item-name" placeholder="Item name / Description" value="${itemName}" list="itemsDataList" required>
       </td>
-      <td style="width: 100px;">
+      <td style="width: 85px;">
         <input type="text" name="hsn_code" class="form-control form-control-sm row-hsn" placeholder="HSN/SAC" value="${itemData.hsn_code || ''}">
       </td>
-      <td style="width: 80px;">
-        <input type="number" name="quantity" class="form-control form-control-sm row-qty text-end" min="0.01" step="any" value="${itemData.quantity || '1'}" required>
+      <td style="width: 82px;">
+        <input type="number" name="quantity" class="form-control form-control-sm row-qty text-end" min="0.01" step="any" value="${itemData.quantity !== undefined ? itemData.quantity : '1'}" required>
       </td>
-      <td style="width: 90px;">
+      <td style="width: 78px;">
         <select name="unit" class="form-select form-select-sm row-unit">
           <option value="PCS" ${itemData.unit === 'PCS' ? 'selected' : ''}>PCS</option>
           <option value="KG" ${itemData.unit === 'KG' ? 'selected' : ''}>KG</option>
@@ -245,20 +367,20 @@ document.addEventListener('DOMContentLoaded', () => {
           <option value="PKT" ${itemData.unit === 'PKT' ? 'selected' : ''}>PKT</option>
         </select>
       </td>
-      <td style="width: 110px;">
-        <input type="number" name="rate" class="form-control form-control-sm row-rate text-end" min="0" step="any" placeholder="0.00" value="${itemData.rate || itemData.sale_price || ''}" required>
+      <td style="width: 95px;">
+        <input type="number" name="rate" class="form-control form-control-sm row-rate text-end" min="0" step="any" placeholder="0.00" value="${itemRate}" required>
       </td>
-      <td style="width: 80px;" class="discount-col ${!enableDiscount ? 'd-none' : ''}">
-        <input type="number" name="item_discount_percent" class="form-control form-control-sm row-discount-pct text-end" min="0" max="100" step="any" placeholder="0%" value="${itemData.discount_percent || '0'}">
+      <td style="width: 72px;" class="discount-col ${!enableDiscount ? 'd-none' : ''}">
+        <input type="number" name="item_discount_percent" class="form-control form-control-sm row-discount-pct text-end" min="0" max="100" step="any" placeholder="0%" value="${itemData.discount_percent !== undefined ? itemData.discount_percent : '0'}">
         <input type="hidden" name="item_discount_amount" class="row-discount-amt" value="0">
       </td>
-      <td style="width: 110px;" class="gst-col ${!showRowTaxRate ? 'd-none' : ''}">
+      <td style="width: 85px;" class="gst-col ${!showRowTaxRate ? 'd-none' : ''}">
         <select name="item_tax_rate" class="form-select form-select-sm row-tax-rate">
-          <option value="0" ${parseFloat(itemData.tax_rate) === 0 ? 'selected' : ''}>0%</option>
-          <option value="5" ${parseFloat(itemData.tax_rate) === 5 ? 'selected' : ''}>5%</option>
-          <option value="12" ${parseFloat(itemData.tax_rate) === 12 ? 'selected' : ''}>12%</option>
-          <option value="18" ${parseFloat(itemData.tax_rate) === 18 || !itemData.tax_rate ? 'selected' : ''}>18%</option>
-          <option value="28" ${parseFloat(itemData.tax_rate) === 28 ? 'selected' : ''}>28%</option>
+          <option value="0" ${itemTaxRate === 0 ? 'selected' : ''}>0%</option>
+          <option value="5" ${itemTaxRate === 5 ? 'selected' : ''}>5%</option>
+          <option value="12" ${itemTaxRate === 12 ? 'selected' : ''}>12%</option>
+          <option value="18" ${itemTaxRate === 18 ? 'selected' : ''}>18%</option>
+          <option value="28" ${itemTaxRate === 28 ? 'selected' : ''}>28%</option>
         </select>
         <input type="hidden" name="item_taxable" class="row-taxable" value="0">
         <input type="hidden" name="item_cgst_rate" class="row-cgst-rate" value="0">
@@ -268,11 +390,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <input type="hidden" name="item_igst_rate" class="row-igst-rate" value="0">
         <input type="hidden" name="item_igst_amount" class="row-igst-amt" value="0">
       </td>
-      <td style="width: 120px;" class="text-end fw-bold">
+      <td style="width: 105px;" class="text-end fw-bold">
         <span class="row-total-display">0.00</span>
         <input type="hidden" name="item_total" class="row-total" value="0">
       </td>
-      <td class="text-center" style="width: 40px;">
+      <td class="text-center p-1" style="width: 32px;">
         <button type="button" class="btn btn-outline-danger btn-sm border-0 btn-remove-row p-1" title="Remove item">
           <i class="bi bi-trash"></i>
         </button>
@@ -592,11 +714,51 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Form submission safety hook
+  // Form submission safety hook & strict field validation
   if (invoiceForm) {
     invoiceForm.addEventListener('submit', (e) => {
       updateAllCalculations();
 
+      // 1. Validate Bill / Invoice Number (digits only)
+      const invNum = invoiceNumberInput ? invoiceNumberInput.value.trim() : '';
+      if (!invNum || !/^[0-9]+$/.test(invNum)) {
+        e.preventDefault();
+        alert('Invalid Bill Number: Bill / Invoice number must contain only numbers (no letters allowed).');
+        if (invoiceNumberInput) invoiceNumberInput.focus();
+        return false;
+      }
+
+      // 2. Validate Phone Number (must be exactly 10 digits if provided)
+      if (partyPhoneInput && partyPhoneInput.value.trim().length > 0) {
+        const phone = partyPhoneInput.value.trim();
+        if (phone.length !== 10 || !/^[0-9]{10}$/.test(phone)) {
+          e.preventDefault();
+          alert(`Invalid Phone Number: Phone number must contain exactly 10 digits (currently ${phone.length} digits). Neither more nor less.`);
+          partyPhoneInput.focus();
+          return false;
+        }
+      }
+
+      // 3. Validate GSTIN (must be exactly 15 alphanumeric characters if provided)
+      if (partyGstinInput && partyGstinInput.value.trim().length > 0) {
+        const gstin = partyGstinInput.value.trim().toUpperCase();
+        if (gstin.length !== 15 || !/^[0-9A-Z]{15}$/.test(gstin)) {
+          e.preventDefault();
+          alert(`Invalid GSTIN Number: GST number must contain exactly 15 characters (currently ${gstin.length} characters). Neither more nor less.`);
+          partyGstinInput.focus();
+          return false;
+        }
+      }
+
+      // 4. Validate State Selection
+      if (partyStateSelect && !partyStateSelect.value) {
+        e.preventDefault();
+        alert('Invalid State: Please select a valid Indian State / Union Territory from the dropdown.');
+        partyStateSelect.focus();
+        return false;
+      }
+
+      // 5. Validate at least one item
       const itemRows = itemsTableBody.querySelectorAll('.invoice-item-row');
       let validRowCount = 0;
       itemRows.forEach(r => {
@@ -611,17 +773,269 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Please enter at least one product / item name in the bill.');
         return false;
       }
+
+      // Clear draft on successful submission
+      clearDraft();
     });
   }
 
-  // Initialize existing rows or add one empty row
-  if (itemsTableBody) {
-    const existingRows = itemsTableBody.querySelectorAll('.invoice-item-row');
-    if (existingRows.length === 0) {
-      addNewRow();
-    } else {
-      existingRows.forEach(r => bindRowEvents(r));
-      updateAllCalculations();
+  // ----------------------------------------------------
+  // 💾 Auto-Save Draft & Crash Recovery Engine
+  // ----------------------------------------------------
+  const firmId = invoiceForm ? (invoiceForm.dataset.firmId || 'default') : 'default';
+  const isEditMode = invoiceForm ? (invoiceForm.dataset.isEdit === '1') : false;
+  const billType = invoiceForm && invoiceForm.querySelector('input[name="type"]')
+    ? invoiceForm.querySelector('input[name="type"]').value
+    : 'sale';
+  const draftKey = `race_draft_${billType}_${firmId}`;
+
+  const draftRecoveryBanner = document.getElementById('draftRecoveryBanner');
+  const draftDetailsText = document.getElementById('draftDetailsText');
+  const btnRestoreDraft = document.getElementById('btnRestoreDraft');
+  const btnDiscardDraft = document.getElementById('btnDiscardDraft');
+  const draftSaveIndicator = document.getElementById('draftSaveIndicator');
+  const draftSaveTime = document.getElementById('draftSaveTime');
+
+  let autoSaveTimeout = null;
+
+  function getDraftData() {
+    if (!invoiceForm || isEditMode) return null;
+
+    const partyNameInput = document.getElementById('partyNameInput');
+    const partyPhoneInput = document.getElementById('partyPhoneInput');
+    const partyGstinInput = document.getElementById('partyGstinInput');
+    const partyAddressInput = document.getElementById('partyAddressInput');
+    const partyStateInput = document.getElementById('partyStateInput');
+    const partyStateCodeInput = document.getElementById('partyStateCodeInput');
+    const invoiceDateInput = invoiceForm.querySelector('input[name="invoice_date"]');
+    const dueDateInput = invoiceForm.querySelector('input[name="due_date"]');
+    const notesInput = document.getElementById('notes');
+    const termsInput = document.getElementById('terms');
+    const selectedMode = invoiceForm.querySelector('input[name="payment_mode"]:checked');
+
+    const itemRows = itemsTableBody ? itemsTableBody.querySelectorAll('.invoice-item-row') : [];
+    const items = [];
+
+    itemRows.forEach(r => {
+      const name = r.querySelector('.row-item-name')?.value || '';
+      const id = r.querySelector('.row-item-id')?.value || '';
+      const hsn = r.querySelector('.row-hsn')?.value || '';
+      const qty = r.querySelector('.row-qty')?.value || '1';
+      const unit = r.querySelector('.row-unit')?.value || 'PCS';
+      const rate = r.querySelector('.row-rate')?.value || '';
+      const disc = r.querySelector('.row-discount-pct')?.value || '0';
+      const tax = r.querySelector('.row-tax-rate')?.value || '18';
+
+      if (name.trim().length > 0 || (rate && parseFloat(rate) > 0)) {
+        items.push({
+          item_id: id,
+          item_name: name,
+          hsn_code: hsn,
+          quantity: qty,
+          unit: unit,
+          rate: rate,
+          discount_percent: disc,
+          tax_rate: tax
+        });
+      }
+    });
+
+    const partyName = partyNameInput ? partyNameInput.value.trim() : '';
+    const hasData = partyName.length > 0 || items.length > 0 || (notesInput && notesInput.value.trim().length > 0);
+
+    if (!hasData) return null;
+
+    return {
+      party_id: partySelect ? partySelect.value : '',
+      party_search_text: partySearchInput ? partySearchInput.value : '',
+      party_name: partyName,
+      party_phone: partyPhoneInput ? partyPhoneInput.value : '',
+      party_gstin: partyGstinInput ? partyGstinInput.value : '',
+      party_address: partyAddressInput ? partyAddressInput.value : '',
+      party_state: partyStateInput ? partyStateInput.value : '',
+      party_state_code: partyStateCodeInput ? partyStateCodeInput.value : '',
+      invoice_date: invoiceDateInput ? invoiceDateInput.value : '',
+      due_date: dueDateInput ? dueDateInput.value : '',
+      is_gst_bill: isGstToggle ? isGstToggle.checked : true,
+      is_interstate: isInterstateToggle ? isInterstateToggle.checked : false,
+      payment_mode: selectedMode ? selectedMode.value : 'cash',
+      discount_type: discountTypeSelect ? discountTypeSelect.value : 'percentage',
+      discount_value: discountValueInput ? discountValueInput.value : '0',
+      paid_amount: paidAmountInput ? paidAmountInput.value : '0',
+      notes: notesInput ? notesInput.value : '',
+      terms: termsInput ? termsInput.value : '',
+      items: items,
+      timestamp: new Date().toISOString(),
+      timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+  }
+
+  function saveDraft() {
+    if (isEditMode) return;
+    try {
+      const data = getDraftData();
+      if (data) {
+        localStorage.setItem(draftKey, JSON.stringify(data));
+        if (draftSaveIndicator && draftSaveTime) {
+          draftSaveTime.textContent = `Draft saved ${data.timeFormatted}`;
+          draftSaveIndicator.classList.remove('d-none');
+        }
+      } else {
+        localStorage.removeItem(draftKey);
+        if (draftSaveIndicator) draftSaveIndicator.classList.add('d-none');
+      }
+    } catch (e) {
+      console.warn('Draft auto-save error:', e);
     }
   }
+
+  function triggerDebouncedAutoSave() {
+    if (isEditMode) return;
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(saveDraft, 1200);
+  }
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(draftKey);
+      if (draftRecoveryBanner) draftRecoveryBanner.classList.add('d-none');
+      if (draftSaveIndicator) draftSaveIndicator.classList.add('d-none');
+    } catch (e) {}
+  }
+
+  function restoreDraftData(draft) {
+    if (!draft) return;
+
+    if (draft.party_name) {
+      const nameInput = document.getElementById('partyNameInput');
+      const phoneInput = document.getElementById('partyPhoneInput');
+      const gstinInput = document.getElementById('partyGstinInput');
+      const addressInput = document.getElementById('partyAddressInput');
+      const stateInput = document.getElementById('partyStateInput');
+      const stateCodeInput = document.getElementById('partyStateCodeInput');
+
+      if (nameInput) nameInput.value = draft.party_name;
+      if (phoneInput) phoneInput.value = draft.party_phone || '';
+      if (gstinInput) gstinInput.value = draft.party_gstin || '';
+      if (addressInput) addressInput.value = draft.party_address || '';
+      if (stateInput) stateInput.value = draft.party_state || '';
+      if (stateCodeInput) stateCodeInput.value = draft.party_state_code || '';
+
+      if (partySelect && draft.party_id) partySelect.value = draft.party_id;
+      if (partySearchInput) partySearchInput.value = draft.party_search_text || draft.party_name;
+      if (btnClearPartySearch) btnClearPartySearch.style.display = draft.party_name ? 'block' : 'none';
+    }
+
+    if (isGstToggle && draft.is_gst_bill !== undefined) {
+      isGstToggle.checked = draft.is_gst_bill;
+      isGstToggle.dispatchEvent(new Event('change'));
+    }
+
+    if (isInterstateToggle && draft.is_interstate !== undefined) {
+      isInterstateToggle.checked = draft.is_interstate;
+    }
+
+    if (draft.payment_mode) {
+      const modeRadio = invoiceForm.querySelector(`input[name="payment_mode"][value="${draft.payment_mode}"]`);
+      if (modeRadio) modeRadio.checked = true;
+    }
+
+    if (draft.discount_type && discountTypeSelect) discountTypeSelect.value = draft.discount_type;
+    if (draft.discount_value && discountValueInput) discountValueInput.value = draft.discount_value;
+    if (draft.paid_amount && paidAmountInput) paidAmountInput.value = draft.paid_amount;
+    if (draft.notes) {
+      const notesEl = document.getElementById('notes');
+      if (notesEl) notesEl.value = draft.notes;
+    }
+    if (draft.terms) {
+      const termsEl = document.getElementById('terms');
+      if (termsEl) termsEl.value = draft.terms;
+    }
+
+    // Populate Items
+    if (draft.items && draft.items.length > 0 && itemsTableBody) {
+      itemsTableBody.innerHTML = '';
+      draft.items.forEach(item => {
+        addNewRow(item);
+      });
+    }
+
+    updateAllCalculations();
+    if (draftRecoveryBanner) draftRecoveryBanner.classList.add('d-none');
+    if (draftSaveIndicator && draftSaveTime) {
+      draftSaveTime.textContent = `Draft restored (${draft.timeFormatted || 'Saved'})`;
+      draftSaveIndicator.classList.remove('d-none');
+    }
+  }
+
+  function checkForSavedDraft() {
+    if (isEditMode) return;
+    try {
+      const rawDraft = localStorage.getItem(draftKey);
+      if (!rawDraft) return;
+
+      const draft = JSON.parse(rawDraft);
+      if (!draft || (!draft.party_name && (!draft.items || draft.items.length === 0))) {
+        return;
+      }
+
+      if (draftRecoveryBanner && draftDetailsText) {
+        const itemCount = draft.items ? draft.items.length : 0;
+        const partyInfo = draft.party_name ? ` for "${draft.party_name}"` : '';
+        draftDetailsText.textContent = `Saved on ${draft.timeFormatted || 'previous session'} with ${itemCount} item(s)${partyInfo}.`;
+        draftRecoveryBanner.classList.remove('d-none');
+      }
+
+      if (btnRestoreDraft) {
+        btnRestoreDraft.onclick = () => {
+          restoreDraftData(draft);
+        };
+      }
+
+      if (btnDiscardDraft) {
+        btnDiscardDraft.onclick = () => {
+          clearDraft();
+        };
+      }
+    } catch (e) {
+      console.warn('Failed to check draft recovery:', e);
+    }
+  }
+
+  // Listen to form input changes for auto-save
+  if (invoiceForm && !isEditMode) {
+    invoiceForm.addEventListener('input', triggerDebouncedAutoSave);
+    invoiceForm.addEventListener('change', triggerDebouncedAutoSave);
+  }
+
+  // Initialize existing rows, preloaded invoice items, or add one empty row
+  if (itemsTableBody) {
+    const preloadedEl = document.getElementById('preloadedInvoiceItems');
+    let preloadedItems = [];
+    if (preloadedEl && preloadedEl.dataset.items) {
+      try {
+        preloadedItems = JSON.parse(preloadedEl.dataset.items);
+      } catch (err) {
+        console.warn('Failed to parse preloaded items:', err);
+      }
+    }
+
+    if (preloadedItems && preloadedItems.length > 0) {
+      preloadedItems.forEach(item => {
+        addNewRow(item);
+      });
+      updateAllCalculations();
+    } else {
+      const existingRows = itemsTableBody.querySelectorAll('.invoice-item-row');
+      if (existingRows.length === 0) {
+        addNewRow();
+      } else {
+        existingRows.forEach(r => bindRowEvents(r));
+        updateAllCalculations();
+      }
+    }
+  }
+
+  // Check for unsaved draft recovery on initial page load
+  checkForSavedDraft();
 });

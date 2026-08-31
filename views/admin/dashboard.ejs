@@ -1,0 +1,211 @@
+<%- include('../partials/header') %>
+
+<%- include('_nav') %>
+
+<!-- 1. Top KPI Summary Grid -->
+<div class="row g-3 mb-4">
+  <!-- Total Business Subscribers -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #fff;">
+      <div class="card-body p-3 d-flex flex-column justify-content-between">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.72rem;">Subscribers & Users</div>
+            <h2 class="fw-bold mb-0 text-white"><%= metrics.users.total || 0 %></h2>
+          </div>
+          <div class="rounded-circle bg-white bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+            <i class="bi bi-people-fill fs-5"></i>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-top border-white border-opacity-25 d-flex justify-content-between small text-white-50">
+          <span><strong class="text-white"><%= metrics.users.active || 0 %></strong> Active</span>
+          <span><strong class="text-warning"><%= metrics.users.suspended || 0 %></strong> Suspended</span>
+          <span><strong class="text-white"><%= metrics.users.admins || 0 %></strong> Admins</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Registered Firms -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; background: linear-gradient(135deg, #065f46, #10b981); color: #fff;">
+      <div class="card-body p-3 d-flex flex-column justify-content-between">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.72rem;">Registered Businesses</div>
+            <h2 class="fw-bold mb-0 text-white"><%= metrics.firms.total || 0 %></h2>
+          </div>
+          <div class="rounded-circle bg-white bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+            <i class="bi bi-buildings-fill fs-5"></i>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-top border-white border-opacity-25 d-flex justify-content-between small text-white-50">
+          <span>Max 2 Firms / User</span>
+          <span><strong class="text-white"><%= metrics.items.total_items || 0 %></strong> Items Logged</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Platform Sales & Turnover -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; background: linear-gradient(135deg, #5c3a21, #b45309); color: #fff;">
+      <div class="card-body p-3 d-flex flex-column justify-content-between">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.72rem;">Total Billed Volume</div>
+            <h2 class="fw-bold mb-0 text-white">₹ <%= parseFloat(metrics.invoices.total_sales_amount || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }) %></h2>
+          </div>
+          <div class="rounded-circle bg-white bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+            <i class="bi bi-currency-rupee fs-5"></i>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-top border-white border-opacity-25 d-flex justify-content-between small text-white-50">
+          <span><strong class="text-white"><%= metrics.invoices.sales_count || 0 %></strong> Sales Bills</span>
+          <span>Due: <strong class="text-warning">₹ <%= parseFloat(metrics.invoices.total_balance_due || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }) %></strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Storage & System Diagnostics -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; background: linear-gradient(135deg, #0f172a, #334155); color: #fff;">
+      <div class="card-body p-3 d-flex flex-column justify-content-between">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.72rem;">Server Storage</div>
+            <h2 class="fw-bold mb-0 text-white"><%= storage.totalStorage %></h2>
+          </div>
+          <div class="rounded-circle bg-white bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+            <i class="bi bi-hdd-rack-fill fs-5"></i>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-top border-white border-opacity-25 d-flex justify-content-between small text-white-50">
+          <span>DB: <strong class="text-white"><%= storage.dbSize %></strong></span>
+          <span>Uploads: <strong class="text-white"><%= storage.uploads.sizeFormatted %></strong> (<%= storage.uploads.fileCount %> files)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Real-Time Activity Feed & Quick Admin Actions -->
+<div class="row g-4 mb-4">
+  <!-- Left: Real-Time Platform Activity Stream -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+      <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold text-dark mb-0">
+          <i class="bi bi-activity text-primary me-2"></i> Real-Time Platform Activity Stream
+        </h5>
+        <span class="badge bg-light text-dark border small">Latest 12 events</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          <% if (recentActivities && recentActivities.length > 0) { %>
+            <% recentActivities.forEach(act => { %>
+              <div class="list-group-item px-4 py-3 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                  <% if (act.type === 'user_registered') { %>
+                    <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                      <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <div>
+                      <div class="fw-semibold text-dark">New Subscriber: <%= act.title %></div>
+                      <small class="text-muted"><%= act.subtitle %></small>
+                    </div>
+                  <% } else if (act.type === 'firm_created') { %>
+                    <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                      <i class="bi bi-building-add"></i>
+                    </div>
+                    <div>
+                      <div class="fw-semibold text-dark">Firm Registered: <%= act.title %></div>
+                      <small class="text-muted">Owner: <%= act.subtitle %></small>
+                    </div>
+                  <% } else if (act.type === 'invoice_created') { %>
+                    <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                      <i class="bi bi-receipt-cutoff"></i>
+                    </div>
+                    <div>
+                      <div class="fw-semibold text-dark">Bill Generated: <%= act.title %></div>
+                      <small class="text-muted"><%= act.subtitle %></small>
+                    </div>
+                  <% } %>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-light text-muted border font-monospace small"><%= new Date(act.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) %></span>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="p-4 text-center text-muted">No recent platform activity found.</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Fast-Track Controls & Audit -->
+  <div class="col-lg-4">
+    <!-- Quick Actions Card -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+      <div class="card-header bg-white py-3 border-0">
+        <h5 class="fw-bold text-dark mb-0">
+          <i class="bi bi-lightning-charge-fill text-warning me-2"></i> Fast-Track Controls
+        </h5>
+      </div>
+      <div class="card-body p-3 pt-0 d-grid gap-2">
+        <a href="/admin/users" class="btn btn-outline-primary text-start d-flex align-items-center justify-content-between py-2 rounded-3">
+          <span><i class="bi bi-people me-2"></i> Inspect All Subscribers</span>
+          <i class="bi bi-chevron-right small"></i>
+        </a>
+        <a href="/admin/firms" class="btn btn-outline-success text-start d-flex align-items-center justify-content-between py-2 rounded-3">
+          <span><i class="bi bi-buildings me-2"></i> Business Firms Directory</span>
+          <i class="bi bi-chevron-right small"></i>
+        </a>
+        <a href="/admin/invoices" class="btn btn-outline-secondary text-start d-flex align-items-center justify-content-between py-2 rounded-3">
+          <span><i class="bi bi-receipt me-2"></i> Global Invoices Ledger</span>
+          <i class="bi bi-chevron-right small"></i>
+        </a>
+        <a href="/admin/system" class="btn btn-outline-dark text-start d-flex align-items-center justify-content-between py-2 rounded-3">
+          <span><i class="bi bi-hdd-network me-2"></i> System Health & Storage Tools</span>
+          <i class="bi bi-chevron-right small"></i>
+        </a>
+        <a href="/admin/settings" class="btn btn-outline-warning text-start text-dark d-flex align-items-center justify-content-between py-2 rounded-3">
+          <span><i class="bi bi-sliders me-2"></i> SaaS Governance & Broadcast</span>
+          <i class="bi bi-chevron-right small"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Admin Audit Logs -->
+    <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold text-dark mb-0">
+          <i class="bi bi-shield-check text-success me-2"></i> Recent Admin Logs
+        </h6>
+        <a href="/admin/system" class="small text-decoration-none">View all</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush small">
+          <% if (recentLogs && recentLogs.length > 0) { %>
+            <% recentLogs.forEach(log => { %>
+              <div class="list-group-item px-3 py-2">
+                <div class="d-flex justify-content-between">
+                  <strong class="text-dark"><%= log.action %></strong>
+                  <span class="text-muted font-monospace" style="font-size: 0.68rem;"><%= new Date(log.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) %></span>
+                </div>
+                <div class="text-muted text-truncate" style="font-size: 0.72rem;"><%= log.details || 'By ' + log.admin_name %></div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="p-3 text-center text-muted small">No audit log records yet.</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

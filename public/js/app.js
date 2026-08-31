@@ -73,4 +73,59 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sidebarBackdrop) {
     sidebarBackdrop.addEventListener('click', closeSidebar);
   }
+
+  // 5. Interactive Settings & Form Radio Cards
+  const radioCards = document.querySelectorAll('.setting-radio-card');
+  radioCards.forEach(card => {
+    const radio = card.querySelector('input[type="radio"]');
+    if (!radio) return;
+
+    // Click anywhere on card to select
+    card.addEventListener('click', (e) => {
+      if (e.target !== radio && e.target.tagName !== 'LABEL') {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+
+    radio.addEventListener('change', () => {
+      const groupName = radio.name;
+      if (!groupName) return;
+
+      const allInGroup = document.querySelectorAll(`input[type="radio"][name="${groupName}"]`);
+      allInGroup.forEach(r => {
+        const parentCard = r.closest('.setting-radio-card');
+        if (parentCard) {
+          if (r.checked) {
+            parentCard.classList.add('active');
+          } else {
+            parentCard.classList.remove('active');
+          }
+        }
+      });
+    });
+  });
+
+  // 6. Interactive Settings Toggle Box (Click anywhere on the box to toggle checked/unchecked)
+  const toggleBoxes = document.querySelectorAll('.setting-toggle-box');
+  toggleBoxes.forEach(box => {
+    const checkbox = box.querySelector('input[type="checkbox"]');
+    if (!checkbox) return;
+
+    box.addEventListener('click', (e) => {
+      // If click was directly on the checkbox/label, let browser handle the flip
+      if (e.target !== checkbox && e.target.tagName !== 'LABEL') {
+        checkbox.checked = !checkbox.checked;
+        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) {
+        box.classList.add('active');
+      } else {
+        box.classList.remove('active');
+      }
+    });
+  });
 });

@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const itemController = require('../controllers/itemController');
-const { ensureAuthenticated, ensureActiveFirm } = require('../middleware/auth');
+const { ensureUserOnly, ensureActiveFirm } = require('../middleware/auth');
 
-router.use(ensureAuthenticated, ensureActiveFirm);
+router.use(ensureUserOnly, ensureActiveFirm);
 
 router.get('/', itemController.listItems);
 router.get('/create', itemController.getCreate);

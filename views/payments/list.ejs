@@ -57,7 +57,11 @@
           <% if (payments && payments.length > 0) { %>
             <% payments.forEach(p => { %>
               <tr>
-                <td style="padding: 0.45rem 0.65rem;" class="font-monospace fw-semibold text-primary"><%= p.payment_number %></td>
+                <td style="padding: 0.45rem 0.65rem;" class="font-monospace fw-bold">
+                  <a href="/payments/view/<%= p.id %>" class="text-decoration-none text-primary">
+                    <i class="bi bi-file-earmark-text me-1"></i><%= p.payment_number %>
+                  </a>
+                </td>
                 <td style="padding: 0.45rem 0.65rem;" class="text-muted small"><%= p.payment_date %></td>
                 <td style="padding: 0.45rem 0.65rem;">
                   <a href="/parties/ledger/<%= p.party_id %>" class="text-decoration-none text-dark fw-medium">
@@ -89,6 +93,11 @@
                       <i class="bi bi-three-dots-vertical text-secondary"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border py-1">
+                      <li>
+                        <a class="dropdown-item py-1 px-3 small d-flex align-items-center text-success fw-semibold" href="/payments/view/<%= p.id %>">
+                          <i class="bi bi-file-earmark-text me-2"></i> View Payment Slip
+                        </a>
+                      </li>
                       <li>
                         <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/parties/ledger/<%= p.party_id %>">
                           <i class="bi bi-journal-text text-primary me-2"></i> View Party Ledger

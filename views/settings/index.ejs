@@ -84,22 +84,26 @@
 
               <div class="row g-3">
                 <div class="col-sm-6">
-                  <div class="form-check card p-3 h-100 border <%= settings.sales.default_gst_type === 'gst' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
-                    <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="gstTypeGst" value="gst" <%= settings.sales.default_gst_type === 'gst' ? 'checked' : '' %>>
-                    <label class="form-check-label fw-semibold text-dark" for="gstTypeGst">
-                      <span class="badge bg-primary me-1">GST</span> GST Tax Invoice (Default)
-                    </label>
-                    <small class="text-muted d-block mt-1">Automatic CGST, SGST, IGST calculations and HSN code tracking on bills.</small>
+                  <div class="card p-3 h-100 setting-radio-card <%= settings.sales.default_gst_type === 'gst' ? 'active' : '' %>">
+                    <div class="form-check">
+                      <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="gstTypeGst" value="gst" <%= settings.sales.default_gst_type === 'gst' ? 'checked' : '' %>>
+                      <label class="form-check-label fw-semibold text-dark w-100" for="gstTypeGst">
+                        <span class="badge bg-primary me-1">GST</span> GST Tax Invoice (Default)
+                      </label>
+                    </div>
+                    <small class="text-muted d-block mt-1 ps-4">Automatic CGST, SGST, IGST calculations and HSN code tracking on bills.</small>
                   </div>
                 </div>
 
                 <div class="col-sm-6">
-                  <div class="form-check card p-3 h-100 border <%= settings.sales.default_gst_type === 'non_gst' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
-                    <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="gstTypeNonGst" value="non_gst" <%= settings.sales.default_gst_type === 'non_gst' ? 'checked' : '' %>>
-                    <label class="form-check-label fw-semibold text-dark" for="gstTypeNonGst">
-                      <span class="badge bg-light text-secondary border me-1">Non-GST</span> Non-GST / Retail Bill
-                    </label>
-                    <small class="text-muted d-block mt-1">Simple invoice with total amounts without requiring GST breakdown.</small>
+                  <div class="card p-3 h-100 setting-radio-card <%= settings.sales.default_gst_type === 'non_gst' ? 'active' : '' %>">
+                    <div class="form-check">
+                      <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="gstTypeNonGst" value="non_gst" <%= settings.sales.default_gst_type === 'non_gst' ? 'checked' : '' %>>
+                      <label class="form-check-label fw-semibold text-dark w-100" for="gstTypeNonGst">
+                        <span class="badge bg-light text-secondary border me-1">Non-GST</span> Non-GST / Retail Bill
+                      </label>
+                    </div>
+                    <small class="text-muted d-block mt-1 ps-4">Simple invoice with total amounts without requiring GST breakdown.</small>
                   </div>
                 </div>
               </div>
@@ -114,24 +118,28 @@
 
               <div class="row g-3">
                 <div class="col-sm-6">
-                  <div class="form-check card p-3 h-100 border <%= settings.sales.gst_calc_mode === 'separate' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
-                    <input class="form-check-input ms-0 me-2" type="radio" name="gst_calc_mode" id="calcSeparate" value="separate" <%= settings.sales.gst_calc_mode === 'separate' ? 'checked' : '' %>>
-                    <label class="form-check-label fw-semibold text-dark" for="calcSeparate">
-                      Separate GST (Item-Wise Tax Rates)
-                    </label>
-                    <small class="text-muted d-block mt-1">
+                  <div class="card p-3 h-100 setting-radio-card <%= settings.sales.gst_calc_mode === 'separate' ? 'active' : '' %>">
+                    <div class="form-check">
+                      <input class="form-check-input ms-0 me-2" type="radio" name="gst_calc_mode" id="calcSeparate" value="separate" <%= settings.sales.gst_calc_mode === 'separate' ? 'checked' : '' %>>
+                      <label class="form-check-label fw-semibold text-dark w-100" for="calcSeparate">
+                        Separate GST (Item-Wise Tax Rates)
+                      </label>
+                    </div>
+                    <small class="text-muted d-block mt-1 ps-4">
                       Each line item has its own GST rate (0%, 5%, 12%, 18%, 28%). Recommended for multi-tax product inventories.
                     </small>
                   </div>
                 </div>
 
                 <div class="col-sm-6">
-                  <div class="form-check card p-3 h-100 border <%= settings.sales.gst_calc_mode === 'final_amount' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
-                    <input class="form-check-input ms-0 me-2" type="radio" name="gst_calc_mode" id="calcFinal" value="final_amount" <%= settings.sales.gst_calc_mode === 'final_amount' ? 'checked' : '' %>>
-                    <label class="form-check-label fw-semibold text-dark" for="calcFinal">
-                      GST on Final Amount (Composite Tax)
-                    </label>
-                    <small class="text-muted d-block mt-1">
+                  <div class="card p-3 h-100 setting-radio-card <%= settings.sales.gst_calc_mode === 'final_amount' ? 'active' : '' %>">
+                    <div class="form-check">
+                      <input class="form-check-input ms-0 me-2" type="radio" name="gst_calc_mode" id="calcFinal" value="final_amount" <%= settings.sales.gst_calc_mode === 'final_amount' ? 'checked' : '' %>>
+                      <label class="form-check-label fw-semibold text-dark w-100" for="calcFinal">
+                        GST on Final Amount (Composite Tax)
+                      </label>
+                    </div>
+                    <small class="text-muted d-block mt-1 ps-4">
                       Tax is computed uniformly on the net taxable subtotal after discounts rather than row-by-row.
                     </small>
                   </div>
@@ -141,15 +149,17 @@
 
             <!-- 3. Add or Remove Discount Attribute / Column -->
             <div class="mb-4 pb-3 border-bottom">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <label class="form-label fw-bold text-dark mb-1">
-                    <i class="bi bi-percent text-primary me-1"></i> Line Item Discount Column
-                  </label>
-                  <p class="text-muted small mb-0">Show or hide the <strong>Discount % (Disc %)</strong> column in the bill items table during invoice creation.</p>
-                </div>
-                <div class="form-check form-switch fs-4">
-                  <input class="form-check-input" type="checkbox" name="enable_discount_column" value="1" id="enableDiscountToggle" <%= settings.sales.enable_discount_column ? 'checked' : '' %>>
+              <div class="card p-3 setting-toggle-box <%= settings.sales.enable_discount_column ? 'active' : '' %>" id="salesDiscountToggleBox">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="pe-3">
+                    <label class="form-check-label fw-bold text-dark mb-1 d-block" for="enableDiscountToggle" style="cursor: pointer;">
+                      <i class="bi bi-percent text-primary me-1"></i> Line Item Discount Column
+                    </label>
+                    <p class="text-muted small mb-0">Show or hide the <strong>Discount % (Disc %)</strong> column in the bill items table during invoice creation.</p>
+                  </div>
+                  <div class="form-check form-switch fs-4 mb-0">
+                    <input class="form-check-input ms-0" type="checkbox" name="enable_discount_column" value="1" id="enableDiscountToggle" <%= settings.sales.enable_discount_column ? 'checked' : '' %> style="cursor: pointer;">
+                  </div>
                 </div>
               </div>
             </div>
@@ -199,29 +209,37 @@
               <label class="form-label fw-bold text-dark mb-1">Default Purchase Bill Tax Mode</label>
               <div class="row g-3 mt-1">
                 <div class="col-sm-6">
-                  <div class="form-check card p-3 h-100 border <%= settings.purchases.default_gst_type === 'gst' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
-                    <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="purGst" value="gst" <%= settings.purchases.default_gst_type === 'gst' ? 'checked' : '' %>>
-                    <label class="form-check-label fw-semibold" for="purGst">GST Purchase Bill</label>
+                  <div class="card p-3 h-100 setting-radio-card <%= settings.purchases.default_gst_type === 'gst' ? 'active' : '' %>">
+                    <div class="form-check">
+                      <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="purGst" value="gst" <%= settings.purchases.default_gst_type === 'gst' ? 'checked' : '' %>>
+                      <label class="form-check-label fw-semibold w-100" for="purGst">GST Purchase Bill</label>
+                    </div>
                   </div>
                 </div>
                 <div class="col-sm-6">
-                  <div class="form-check card p-3 h-100 border <%= settings.purchases.default_gst_type === 'non_gst' ? 'border-primary bg-primary-subtle' : 'bg-white' %>">
-                    <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="purNonGst" value="non_gst" <%= settings.purchases.default_gst_type === 'non_gst' ? 'checked' : '' %>>
-                    <label class="form-check-label fw-semibold" for="purNonGst">Non-GST / Cash Purchase</label>
+                  <div class="card p-3 h-100 setting-radio-card <%= settings.purchases.default_gst_type === 'non_gst' ? 'active' : '' %>">
+                    <div class="form-check">
+                      <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="purNonGst" value="non_gst" <%= settings.purchases.default_gst_type === 'non_gst' ? 'checked' : '' %>>
+                      <label class="form-check-label fw-semibold w-100" for="purNonGst">Non-GST / Cash Purchase</label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Discount Column -->
+            <!-- Discount Column (Clickable Button Card Toggle) -->
             <div class="mb-3">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <label class="form-label fw-bold text-dark mb-1">Line Item Discount Column in Purchases</label>
-                  <p class="text-muted small mb-0">Show or hide supplier discount percentage column.</p>
-                </div>
-                <div class="form-check form-switch fs-4">
-                  <input class="form-check-input" type="checkbox" name="enable_discount_column" value="1" <%= settings.purchases.enable_discount_column ? 'checked' : '' %>>
+              <div class="card p-3 setting-toggle-box <%= settings.purchases.enable_discount_column ? 'active' : '' %>" id="purDiscountToggleBox">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="pe-3">
+                    <label class="form-check-label fw-bold text-dark mb-1 d-block" for="purDiscountToggle" style="cursor: pointer;">
+                      <i class="bi bi-percent text-success me-1"></i> Line Item Discount Column in Purchases
+                    </label>
+                    <p class="text-muted small mb-0">Show or hide supplier discount percentage column.</p>
+                  </div>
+                  <div class="form-check form-switch fs-4 mb-0">
+                    <input class="form-check-input ms-0" type="checkbox" name="enable_discount_column" value="1" id="purDiscountToggle" <%= settings.purchases.enable_discount_column ? 'checked' : '' %> style="cursor: pointer;">
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const invoiceController = require('../controllers/invoiceController');
-const { ensureAuthenticated, ensureActiveFirm } = require('../middleware/auth');
+const { ensureUserOnly, ensureActiveFirm } = require('../middleware/auth');
 
-router.use(ensureAuthenticated, ensureActiveFirm);
+router.use(ensureUserOnly, ensureActiveFirm);
 
 // Sales routes
 router.get('/sales', invoiceController.listSales);
@@ -13,9 +13,12 @@ router.get('/sales/create', invoiceController.getCreateSale);
 router.get('/purchases', invoiceController.listPurchases);
 router.get('/purchases/create', invoiceController.getCreatePurchase);
 
-// Shared create, view, print, delete
+// Shared create, edit, view, print, delete
 router.post('/invoices/create', invoiceController.postCreate);
+router.get('/invoices/edit/:id', invoiceController.getEdit);
+router.post('/invoices/edit/:id', invoiceController.postEdit);
 router.get('/invoices/view/:id', invoiceController.getView);
+router.get('/invoices/download/:id', invoiceController.getDownload);
 router.get('/invoices/print/:id', invoiceController.getPrintA4);
 router.post('/invoices/delete/:id', invoiceController.postDelete);
 

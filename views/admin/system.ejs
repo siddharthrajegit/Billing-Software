@@ -1,0 +1,159 @@
+<%- include('../partials/header') %>
+
+<%- include('_nav') %>
+
+<!-- 1. System Health & Server Diagnostics -->
+<div class="row g-4 mb-4">
+  <!-- Server Environment & Memory -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+      <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold text-dark mb-0">
+          <i class="bi bi-cpu-fill text-primary me-2"></i> Server Environment & Diagnostics
+        </h5>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">OPERATIONAL</span>
+      </div>
+      <div class="card-body p-3 pt-0">
+        <table class="table table-sm table-borderless mb-0 small">
+          <tbody>
+            <tr>
+              <td class="text-muted">Operating System:</td>
+              <td class="text-end fw-semibold text-dark"><%= sysInfo.platform %> (<%= sysInfo.arch %>)</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Node.js Runtime:</td>
+              <td class="text-end fw-semibold font-monospace text-primary"><%= sysInfo.nodeVersion %></td>
+            </tr>
+            <tr>
+              <td class="text-muted">Process Uptime:</td>
+              <td class="text-end fw-semibold text-dark"><%= Math.floor(sysInfo.uptime / 60) %> mins (<%= sysInfo.uptime %>s)</td>
+            </tr>
+            <tr>
+              <td class="text-muted">CPU Processors:</td>
+              <td class="text-end fw-semibold text-dark"><%= sysInfo.cpuCount %> Cores</td>
+            </tr>
+            <tr>
+              <td class="text-muted">System RAM Free / Total:</td>
+              <td class="text-end fw-semibold text-dark"><%= sysInfo.freeMem %> / <%= sysInfo.totalMem %></td>
+            </tr>
+            <tr class="border-top">
+              <td class="text-muted">Node Memory (RSS):</td>
+              <td class="text-end fw-bold font-monospace text-dark"><%= sysInfo.rssMem %></td>
+            </tr>
+            <tr>
+              <td class="text-muted">Heap Allocated / Used:</td>
+              <td class="text-end fw-bold font-monospace text-dark"><%= sysInfo.heapTotal %> / <%= sysInfo.heapUsed %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Storage Footprint & Maintenance Actions -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+      <div class="card-header bg-white py-3 border-0">
+        <h5 class="fw-bold text-dark mb-0">
+          <i class="bi bi-hdd-fill text-warning me-2"></i> Storage Management & Database Tools
+        </h5>
+      </div>
+      <div class="card-body p-3 pt-0">
+        <!-- Storage summary bars -->
+        <div class="p-3 bg-light rounded-3 mb-3">
+          <div class="d-flex justify-content-between mb-1 small">
+            <span class="text-muted">SQLite Database File (`biller.db`):</span>
+            <strong class="text-dark"><%= storage.dbSize %></strong>
+          </div>
+          <div class="d-flex justify-content-between mb-1 small">
+            <span class="text-muted">Subscriber Uploads (`/public/uploads`):</span>
+            <strong class="text-dark"><%= storage.uploads.sizeFormatted %> (<%= storage.uploads.fileCount %> files)</strong>
+          </div>
+          <div class="d-flex justify-content-between border-top pt-1 mt-1 small">
+            <span class="fw-bold text-dark">Total Storage Footprint:</span>
+            <strong class="text-primary font-monospace fs-6"><%= storage.totalStorage %></strong>
+          </div>
+        </div>
+
+        <!-- Maintenance Tools -->
+        <div class="d-grid gap-2">
+          <!-- 1. Vacuum DB -->
+          <form action="/admin/system/vacuum" method="POST" class="m-0">
+            <button type="submit" class="btn btn-outline-primary btn-sm w-100 rounded-pill text-start d-flex align-items-center justify-content-between py-2 px-3">
+              <span><i class="bi bi-magic me-2"></i> Optimize & Vacuum SQLite Database</span>
+              <span class="badge bg-primary-subtle text-primary">Execute</span>
+            </button>
+          </form>
+
+          <!-- 2. Clean Orphan Files -->
+          <form action="/admin/system/clean-orphans" method="POST" class="m-0 form-delete-confirm" data-confirm-message="Scan and remove all unreferenced files in uploads folder?">
+            <button type="submit" class="btn btn-outline-warning text-dark btn-sm w-100 rounded-pill text-start d-flex align-items-center justify-content-between py-2 px-3">
+              <span><i class="bi bi-trash2 me-2"></i> Purge Orphan Media Uploads</span>
+              <span class="badge bg-warning-subtle text-dark">Clean Storage</span>
+            </button>
+          </form>
+
+          <!-- 3. Download Raw DB -->
+          <a href="/admin/system/download-db" class="btn btn-outline-success btn-sm w-100 rounded-pill text-start d-flex align-items-center justify-content-between py-2 px-3">
+            <span><i class="bi bi-download me-2"></i> Download Full Database Snapshot (.db)</span>
+            <span class="badge bg-success-subtle text-success">Export</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Admin Security Audit Trail Logs -->
+<div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+  <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+    <h5 class="fw-bold text-dark mb-0">
+      <i class="bi bi-shield-check text-success me-2"></i> Security & Governance Audit Trail
+    </h5>
+    <span class="badge bg-light text-dark border">Recent <%= auditLogs.length %> records</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-dark">
+        <tr>
+          <th>Timestamp</th>
+          <th>Admin User</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>Details</th>
+          <th>IP Address</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (auditLogs && auditLogs.length > 0) { %>
+          <% auditLogs.forEach(log => { %>
+            <tr>
+              <td class="font-monospace text-muted">
+                <%= new Date(log.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) %>
+              </td>
+              <td class="fw-bold text-dark"><%= log.admin_name %></td>
+              <td>
+                <span class="badge bg-light text-dark border font-monospace"><%= log.action %></span>
+              </td>
+              <td>
+                <% if (log.target_type) { %>
+                  <span class="text-primary fw-semibold"><%= log.target_type %> #<%= log.target_id %></span>
+                <% } else { %>
+                  <span class="text-muted">--</span>
+                <% } %>
+              </td>
+              <td class="text-muted"><%= log.details || '--' %></td>
+              <td class="font-monospace text-muted"><%= log.ip_address || '127.0.0.1' %></td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">No security audit records logged yet.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

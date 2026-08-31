@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const backupController = require('../controllers/backupController');
-const { ensureAuthenticated } = require('../middleware/auth');
+const { ensureUserOnly } = require('../middleware/auth');
 const upload = require('../config/upload');
 
-router.use(ensureAuthenticated);
+router.use(ensureUserOnly);
 
 router.get('/', backupController.getIndex);
 router.get('/export', backupController.exportJson);

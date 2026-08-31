@@ -1,0 +1,319 @@
+<%- include('../partials/header') %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-11 col-xl-10">
+    <!-- Legal Portal Header -->
+    <div class="text-center mb-4">
+      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold mb-2">
+        <i class="bi bi-shield-check me-1"></i> Official Legal & Governance Center
+      </span>
+      <h2 class="fw-bold text-dark">RACE FINANCE Legal, Privacy & Terms</h2>
+      <p class="text-muted small mx-auto" style="max-width: 650px;">
+        Transparent policies, zero-knowledge security commitments, and clear commercial terms governing your use of the RACE FINANCE Billing & Accounting Platform.
+      </p>
+    </div>
+
+    <!-- Content Area -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+      <div class="card-body p-4 p-md-5">
+
+        <% if (activeTab === 'terms') { %>
+          <!-- =================== TERMS & CONDITIONS =================== -->
+          <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom flex-wrap gap-2">
+            <div>
+              <h3 class="fw-bold text-dark mb-1">Terms and Conditions of Service</h3>
+              <div class="text-muted small">Effective Date: January 1, 2026 &bull; Last Updated: August 2026</div>
+            </div>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+              Standard Commercial License
+            </span>
+          </div>
+
+          <div class="legal-body text-secondary lh-lg">
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-check2-circle text-primary me-2"></i>1. Acceptance of Terms</h5>
+            <p>
+              By logging into, using, or subscribing to the <strong>RACE FINANCE</strong> platform ("Service", "Application", "We", "Us"), you ("Subscriber", "User", "Merchant") acknowledge that you have read, understood, and agreed to be legally bound by these Terms and Conditions. If you do not agree with any part of these terms, you must refrain from using the platform.
+            </p>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-person-badge text-primary me-2"></i>2. Account Provisioning & User Custody</h5>
+            <p>
+              Account access is granted via direct administrative provisioning. Public self-registration is disabled. Your account credentials (registered mobile number and password) are created and assigned to you by the platform administrator upon onboarding. You are solely responsible for maintaining the confidentiality of your credentials.
+            </p>
+
+            <div class="alert alert-warning border-warning border-opacity-50 p-3 rounded-3 my-3">
+              <div class="d-flex align-items-start">
+                <i class="bi bi-shield-exclamation fs-4 text-warning me-3 mt-1"></i>
+                <div>
+                  <strong class="text-dark">Zero-Knowledge Password Security & User Responsibility:</strong>
+                  <p class="small mb-0 text-dark">
+                    All user passwords undergo one-way cryptographic hashing (<code class="bg-light px-1">bcrypt</code>) before storage. RACE FINANCE personnel and platform administrators do <strong>not</strong> possess access to your plain-text password. Once created or updated, you bear sole responsibility for remembering and safeguarding your credentials.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-download text-primary me-2"></i>3. Local Data Portability & Storage Rights</h5>
+            <p>
+              You maintain 100% legal ownership over all business data, inventory records, customer lists, and financial transactions entered into the system. You are entitled to export and download complete, unencrypted backups of your database into your local offline storage in <code class="bg-light px-1">.json</code> format or printable PDF records at any time without limitation.
+            </p>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-clock-history text-primary me-2"></i>4. Subscription Lifecycle & Automated Account Deletion Policy</h5>
+            <div class="alert alert-danger border-danger border-opacity-50 p-3 rounded-3 my-3">
+              <div class="d-flex align-items-start">
+                <i class="bi bi-trash3-fill fs-4 text-danger me-3 mt-1"></i>
+                <div>
+                  <strong class="text-dark">1-Year Non-Renewal Data Purge Term:</strong>
+                  <p class="small mb-0 text-dark">
+                    Accounts that remain expired or inactive without a renewed subscription plan for a continuous duration of <strong>1 (one) full year (12 consecutive months)</strong> will be permanently deleted and purged from our production servers. All linked business firms, invoices, and customer ledgers will be irreversibly erased to maintain optimal platform hygiene and security. Subscribers are strongly advised to perform local database exports prior to account lapse.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-gift text-primary me-2"></i>5. Complimentary 1-Month Trial & Non-Refundable Plans</h5>
+            <p>
+              Every new merchant is entitled to a comprehensive <strong>1-Month Free Trial</strong> featuring unrestricted access to all GST billing, inventory control, and ledger tools. Because every user is granted this extensive evaluation period before choosing to subscribe, all subsequent plan purchases and subscription fees are <strong>strictly non-refundable</strong>.
+            </p>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-shield-slash text-primary me-2"></i>6. Acceptable Use & Account Suspension</h5>
+            <p>
+              Users agree not to use the Service for unlawful financial dealings, fraudulent invoice generation, money laundering, or transmitting malicious code. RACE FINANCE reserves the right to suspend or terminate accounts engaging in abusive, illegal, or disruptive activities.
+            </p>
+          </div>
+
+        <% } else if (activeTab === 'privacy') { %>
+          <!-- =================== PRIVACY POLICY =================== -->
+          <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom flex-wrap gap-2">
+            <div>
+              <h3 class="fw-bold text-dark mb-1">Privacy Policy & Data Protection</h3>
+              <div class="text-muted small">Commitment to Zero-Inspection & Absolute Client Privacy</div>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+              Zero-Knowledge Architecture
+            </span>
+          </div>
+
+          <div class="legal-body text-secondary lh-lg">
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-lock-fill text-primary me-2"></i>1. Our Absolute Privacy Pledge</h5>
+            <p>
+              At <strong>RACE FINANCE</strong>, we recognize that your billing records, customer databases, purchase costs, and profit margins represent strictly confidential business assets. We adhere to an uncompromising zero-inspection privacy model.
+            </p>
+
+            <div class="card bg-light border-0 p-4 rounded-4 my-3">
+              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-fill-check text-success me-2"></i>Staff & Administrator Access Guarantee:</h6>
+              <p class="small text-muted mb-0">
+                RACE FINANCE administrators and support engineers <strong>never</strong> log into your account, view your individual invoice items, inspect your customer balances, or commercialize your financial data. Platform administrators only manage platform-level infrastructure (such as server health, storage capacity, and user account status).
+              </p>
+            </div>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-database-lock text-primary me-2"></i>2. Cryptographic Password Protection</h5>
+            <p>
+              We implement industry-standard <strong>bcrypt cryptographic salt hashing</strong> (10 rounds) for password storage. Plain-text passwords are never stored, logged, or visible in database tables or server logs. If you change or reset your password, you are exclusively responsible for remembering your new credentials.
+            </p>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-hdd-network text-primary me-2"></i>3. Information We Collect</h5>
+            <ul>
+              <li><strong>Account Credentials:</strong> Name, phone number, email address, and cryptographic password hash.</li>
+              <li><strong>Business Firm Profile:</strong> Business name, registered address, GSTIN, PAN, bank account details, and logo (used strictly for rendering your invoices).</li>
+              <li><strong>Accounting Metadata:</strong> Item catalogs, customer/party ledgers, invoices, and payment receipts recorded by you.</li>
+            </ul>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-google text-danger me-2"></i>4. Optional Google Drive Cloud Integration</h5>
+            <p>
+              When you opt to connect Google OAuth for 1-Click Backups, the Application only requests authorization under the restricted scope (<code class="bg-light px-1">https://www.googleapis.com/auth/drive.file</code>). This grants access <em>only</em> to the files created by RACE FINANCE (specifically the <strong>"RACE FINANCE Backups"</strong> folder) and has zero access to any other personal files in your Google Drive.
+            </p>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-exclamation-octagon text-danger me-2"></i>5. Security Incident Reporting Protocol</h5>
+            <p>
+              If you ever notice any unauthorized login attempts, abnormal behavior, or suspect any security vulnerability on your account, please immediately contact our emergency security response desk via WhatsApp at <strong>+91 9672847747</strong> or email <strong>security@racefinance.com</strong>.
+            </p>
+          </div>
+
+        <% } else if (activeTab === 'refund') { %>
+          <!-- =================== REFUND POLICY =================== -->
+          <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom flex-wrap gap-2">
+            <div>
+              <h3 class="fw-bold text-dark mb-1">Refund & Cancellation Policy</h3>
+              <div class="text-muted small">Standard SaaS Commercial Policy & Trial Clarifications</div>
+            </div>
+            <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-3 py-2 rounded-pill">
+              Non-Refundable Policy
+            </span>
+          </div>
+
+          <div class="legal-body text-secondary lh-lg">
+            <div class="alert alert-info border-info border-opacity-50 p-4 rounded-4 my-3">
+              <h5 class="fw-bold text-dark mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i>Why Payments are Non-Refundable:</h5>
+              <p class="mb-0 text-dark small">
+                RACE FINANCE provides an unconditional <strong>1-Month (30 Days) Full-Featured Free Trial</strong> to every merchant. During this trial period, you have unrestricted access to all software capabilities—including unlimited GST invoice generation, A4 printing, multi-firm setup, inventory tracking, and party ledgers—allowing you to thoroughly evaluate the platform before making any financial commitment.
+              </p>
+            </div>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-x-circle text-danger me-2"></i>1. Strict No-Refund Policy</h5>
+            <p>
+              Once a paid subscription plan, annual license, or renewal fee has been processed, the transaction is <strong>final and strictly non-refundable</strong>. No partial, prorated, or full refunds will be issued under any circumstances, including:
+            </p>
+            <ul>
+              <li>Change of business decision or operational closure.</li>
+              <li>Under-utilization or non-usage of the software features during the subscription term.</li>
+              <li>Accidental renewal or early plan cancellation.</li>
+            </ul>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-slash-circle text-primary me-2"></i>2. Subscription Cancellation</h5>
+            <p>
+              You may choose not to renew your subscription plan at the end of your billing term. Upon cancellation, your account will remain fully functional until the active plan's expiry date.
+            </p>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-shield-check text-success me-2"></i>3. Full Data Retention During Grace Period</h5>
+            <p>
+              If your plan expires, your data remains safely stored for up to <strong>1 full year (12 months)</strong>, allowing you to renew your subscription anytime without losing your historical ledgers, or export your full database via our 1-click JSON download tool.
+            </p>
+          </div>
+
+        <% } else if (activeTab === 'disclaimer') { %>
+          <!-- =================== DISCLAIMER =================== -->
+          <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom flex-wrap gap-2">
+            <div>
+              <h3 class="fw-bold text-dark mb-1">Legal Disclaimer & Tax Responsibility</h3>
+              <div class="text-muted small">Statutory Compliance, Record-Management Utility Notice & Limitation of Liability</div>
+            </div>
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 rounded-pill">
+              Legal Notice
+            </span>
+          </div>
+
+          <div class="legal-body text-secondary lh-lg">
+            <!-- Official Prominent Disclaimer Box -->
+            <div class="alert alert-warning border-warning border-opacity-50 p-4 rounded-4 my-3 shadow-sm">
+              <div class="d-flex align-items-start">
+                <i class="bi bi-exclamation-triangle-fill fs-3 text-warning me-3 mt-1 flex-shrink-0"></i>
+                <div>
+                  <h6 class="fw-bold text-dark mb-2">Record-Management & Billing Utility Notice:</h6>
+                  <p class="mb-0 text-dark small lh-base">
+                    <strong>Disclaimer:</strong> This software is intended for basic business record-keeping and billing purposes. It is not a substitute for a Chartered Accountant, tax professional, accountant, or official government tax/GST system. Users are responsible for verifying the accuracy, legality, and tax treatment of records generated using the software.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-bank text-primary me-2"></i>1. Statutory Tax & GST Filing Responsibility</h5>
+            <p>
+              RACE FINANCE provides automated mathematical tools (CGST, SGST, IGST, and HSN breakdowns) based on standard statutory rates configured by the user. However, this software is a record-management and billing utility and does not itself establish legal tax/GST compliance. The final verification of invoice data, correct classification of HSN/SAC codes, and formal filing of tax returns (e.g., GSTR-1, GSTR-3B, GSTR-9) with the Goods and Services Tax Network (GSTN) or government tax authorities remains the <strong>sole legal responsibility of the business owner / merchant</strong>.
+            </p>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-laptop text-primary me-2"></i>2. Software Provided "As-Is"</h5>
+            <p>
+              The Service is provided on an "as-is" and "as-available" basis. While we maintain high uptime and computational accuracy standards, RACE FINANCE makes no warranties, expressed or implied, regarding continuous uninterrupted operation or absolute mathematical fitness for specific unregulated business schemes.
+            </p>
+
+            <h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-hdd-fill text-primary me-2"></i>3. Local Backup Custody</h5>
+            <p>
+              While RACE FINANCE maintains enterprise-grade database reliability, merchants are encouraged to utilize the built-in <strong>Local Data Export feature</strong> to download periodic offline backups (<code class="bg-light px-1">.json</code>) to their personal storage devices.
+            </p>
+          </div>
+
+        <% } else if (activeTab === 'security') { %>
+          <!-- =================== SECURITY & PASSWORD ADVISORY =================== -->
+          <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom flex-wrap gap-2">
+            <div>
+              <h3 class="fw-bold text-dark mb-1">Data Security & Password Protection Architecture</h3>
+              <div class="text-muted small">Technical Details on Credential Encryption & Data Safeguards</div>
+            </div>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+              Enterprise Grade Encryption
+            </span>
+          </div>
+
+          <div class="legal-body text-secondary lh-lg">
+            <div class="row g-4 my-2">
+              <div class="col-md-6">
+                <div class="card h-100 bg-light border-0 p-3 rounded-4">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary text-white rounded-3 p-2 me-2">
+                      <i class="bi bi-key-fill"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-0">Zero-Knowledge Passwords</h6>
+                  </div>
+                  <p class="small text-muted mb-0">
+                    Passwords are never stored in plain text. They are irreversibly hashed using <code>bcrypt</code> with random salts. Nobody—including our platform developers or database administrators—can retrieve or read your password.
+                  </p>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card h-100 bg-light border-0 p-3 rounded-4">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success text-white rounded-3 p-2 me-2">
+                      <i class="bi bi-eye-slash-fill"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-0">Zero Account Inspection</h6>
+                  </div>
+                  <p class="small text-muted mb-0">
+                    We strictly enforce role isolation. Platform admins manage platform infrastructure only and cannot create, view, or modify your individual bills, invoices, items, or customer ledgers.
+                  </p>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card h-100 bg-light border-0 p-3 rounded-4">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="bg-info text-white rounded-3 p-2 me-2">
+                      <i class="bi bi-download"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-0">Complete Data Portability</h6>
+                  </div>
+                  <p class="small text-muted mb-0">
+                    Your financial data belongs exclusively to you. You can export complete offline database snapshots in standard JSON format anytime directly from the Data Backup panel.
+                  </p>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card h-100 bg-light border-0 p-3 rounded-4">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="bg-warning text-dark rounded-3 p-2 me-2">
+                      <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-0">1-Year Data Retention</h6>
+                  </div>
+                  <p class="small text-muted mb-0">
+                    If an account remains expired without plan renewal for over 1 year (12 continuous months), it is automatically purged to protect system integrity and eliminate orphan data.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 p-4 border rounded-4 bg-white shadow-sm">
+              <h5 class="fw-bold text-dark mb-2"><i class="bi bi-bell-fill text-danger me-2"></i>Suspicious Activity & Security Reporting</h5>
+              <p class="text-muted small mb-3">
+                If you ever observe unexpected transactions, suspect unauthorized access, or experience security anomalies on your account, report it immediately to our security response team:
+              </p>
+              <div class="d-flex flex-wrap gap-2">
+                <a href="whatsapp://send?phone=919672847747&text=SECURITY%20ALERT:%20I%20noticed%20suspicious%20activity%20on%20my%20RACE%20FINANCE%20account." class="btn btn-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center">
+                  <i class="bi bi-whatsapp me-2"></i> Report on WhatsApp (+91 9672847747)
+                </a>
+                <a href="tel:+919672847747" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center">
+                  <i class="bi bi-telephone-fill me-2"></i> Call Security Desk
+                </a>
+              </div>
+            </div>
+          </div>
+        <% } %>
+
+      </div>
+    </div>
+
+    <!-- Quick Footer Links Box -->
+    <div class="card bg-light border-0 p-3 rounded-4 text-center mb-4">
+      <div class="d-flex flex-wrap justify-content-center gap-3 small text-muted">
+        <a href="/legal?tab=terms" class="text-decoration-none <%= activeTab === 'terms' ? 'fw-bold text-primary' : 'text-secondary' %>">Terms & Conditions</a> &bull;
+        <a href="/legal?tab=privacy" class="text-decoration-none <%= activeTab === 'privacy' ? 'fw-bold text-primary' : 'text-secondary' %>">Privacy Policy</a> &bull;
+        <a href="/legal?tab=refund" class="text-decoration-none <%= activeTab === 'refund' ? 'fw-bold text-primary' : 'text-secondary' %>">Refund Policy</a> &bull;
+        <a href="/legal?tab=disclaimer" class="text-decoration-none <%= activeTab === 'disclaimer' ? 'fw-bold text-primary' : 'text-secondary' %>">Legal Disclaimer</a> &bull;
+        <a href="/legal?tab=security" class="text-decoration-none <%= activeTab === 'security' ? 'fw-bold text-primary' : 'text-secondary' %>">Security & Passwords</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

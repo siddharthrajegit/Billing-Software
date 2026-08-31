@@ -151,6 +151,7 @@
             <th style="padding: 0.5rem 0.65rem;" class="text-end">Credit (-)</th>
             <th style="padding: 0.5rem 0.65rem;">Payment & Settlement Details (FIFO Allocation)</th>
             <th style="padding: 0.5rem 0.65rem;" class="text-end">Running Balance (₹)</th>
+            <th style="width: 95px; padding: 0.5rem 0.5rem;" class="text-end">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -161,29 +162,34 @@
             <td style="padding: 0.45rem 0.65rem;" class="text-end text-muted">--</td>
             <td style="padding: 0.45rem 0.65rem;" class="text-muted small">Initial account balance</td>
             <td style="padding: 0.45rem 0.65rem;" class="text-end fw-bold">₹ <%= openingBal.toFixed(2) %></td>
+            <td style="padding: 0.45rem 0.5rem;" class="text-end text-muted small">--</td>
           </tr>
 
           <% if (txList.length > 0) { %>
-            <% txList.forEach(tx => { %>
-              <tr>
+            <% txList.forEach(tx => { 
+                 const slipUrl = tx.entry_type === 'invoice' ? ('/invoices/view/' + tx.id) : ('/payments/view/' + tx.id);
+            %>
+              <tr class="ledger-slip-row" data-href="<%= slipUrl %>" style="cursor: pointer;" title="Click to open <%= tx.entry_type === 'invoice' ? 'Bill' : 'Payment Slip' %> <%= tx.voucher_no %>">
                 <td style="padding: 0.45rem 0.65rem;" class="small text-muted"><%= tx.date %></td>
-                <td style="padding: 0.45rem 0.65rem;" class="font-monospace fw-semibold">
+                <td style="padding: 0.45rem 0.65rem;" class="font-monospace fw-bold">
                   <% if (tx.entry_type === 'invoice') { %>
                     <a href="/invoices/view/<%= tx.id %>" class="text-decoration-none text-primary">
-                      <%= tx.voucher_no %>
+                      <i class="bi bi-receipt me-1"></i><%= tx.voucher_no %>
                     </a>
                   <% } else { %>
-                    <span class="text-dark"><%= tx.voucher_no %></span>
+                    <a href="/payments/view/<%= tx.id %>" class="text-decoration-none text-success">
+                      <i class="bi bi-file-earmark-text me-1"></i><%= tx.voucher_no %>
+                    </a>
                   <% } %>
                 </td>
                 <td style="padding: 0.45rem 0.4rem;" class="text-center">
                   <% if (tx.entry_type === 'invoice') { %>
                     <span class="badge <%= tx.type === 'sale' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-info-subtle text-info border border-info-subtle' %>" style="font-size: 0.68rem; padding: 0.2em 0.45em;">
-                      <%= tx.type === 'sale' ? 'Sale' : 'Purchase' %>
+                      <%= tx.type === 'sale' ? 'Sale Bill' : 'Purchase Bill' %>
                     </span>
                   <% } else { %>
                     <span class="badge <%= tx.type === 'payment_in' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle' %>" style="font-size: 0.68rem; padding: 0.2em 0.45em;">
-                      <%= tx.type === 'payment_in' ? 'Receipt' : 'Payment' %>
+                      <%= tx.type === 'payment_in' ? 'Receipt (In)' : 'Voucher (Out)' %>
                     </span>
                   <% } %>
                 </td>
@@ -209,11 +215,22 @@
                     <%= tx.running_balance > 0 ? '(Due)' : (tx.running_balance < 0 ? '(Advance)' : '(Cleared)') %>
                   </div>
                 </td>
+                <td style="padding: 0.45rem 0.5rem;" class="text-end">
+                  <% if (tx.entry_type === 'invoice') { %>
+                    <a href="/invoices/view/<%= tx.id %>" class="btn btn-outline-primary btn-sm py-0 px-2 small" title="Open Bill">
+                      <i class="bi bi-eye"></i> View
+                    </a>
+                  <% } else { %>
+                    <a href="/payments/view/<%= tx.id %>" class="btn btn-outline-success btn-sm py-0 px-2 small" title="Open Slip">
+                      <i class="bi bi-file-earmark-text"></i> Slip
+                    </a>
+                  <% } %>
+                </td>
               </tr>
             <% }); %>
           <% } else { %>
             <tr>
-              <td colspan="7" class="text-center py-4 text-muted">
+              <td colspan="8" class="text-center py-4 text-muted">
                 No billing or payment transactions recorded for this party yet.
               </td>
             </tr>
@@ -223,5 +240,22 @@
     </div>
   </div>
 </div>
+
+<script>
+  // Click anywhere on a transaction row to open the slip
+  document.addEventListener('DOMContentLoaded', () => {
+    const slipRows = document.querySelectorAll('.ledger-slip-row');
+    slipRows.forEach(row => {
+      row.addEventListener('click', (e) => {
+        // Prevent double trigger if clicking directly on a link or button inside the row
+        if (e.target.closest('a') || e.target.closest('button')) return;
+        const href = row.dataset.href;
+        if (href) {
+          window.location.href = href;
+        }
+      });
+    });
+  });
+</script>
 
 <%- include('../partials/footer') %>

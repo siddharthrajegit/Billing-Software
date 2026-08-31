@@ -1,4 +1,4 @@
-const { Payment, Party, Invoice } = require('../models');
+const { Payment, Party, Invoice, Setting } = require('../models');
 
 const paymentController = {
   listPayments: (req, res) => {
@@ -76,6 +76,35 @@ const paymentController = {
       req.flash('error_msg', 'Failed to record payment: ' + err.message);
       res.redirect(`/payments/create?type=${req.body.type || 'payment_in'}`);
     }
+  },
+
+  getView: (req, res) => {
+    const firmId = req.activeFirm.id;
+    const payment = Payment.getById(req.params.id, firmId);
+    if (!payment) {
+      req.flash('error_msg', 'Payment slip not found.');
+      return res.redirect('/payments');
+    }
+
+    const party = Party.getById(payment.party_id, firmId);
+    const settings = Setting.get(firmId);
+
+    // Find linked or settled invoices for this payment if any
+    let linkedInvoices = [];
+    if (payment.invoice_id) {
+      const inv = Invoice.getById(payment.invoice_id, firmId);
+      if (inv) linkedInvoices.push(inv);
+    }
+
+    res.render('payments/view', {
+      title: `${payment.type === 'payment_in' ? 'Payment Receipt' : 'Payment Voucher'} - ${payment.payment_number}`,
+      payment,
+      party,
+      firm: req.activeFirm,
+      linkedInvoices,
+      settings,
+      activeMenu: 'payments'
+    });
   },
 
   postDelete: (req, res) => {

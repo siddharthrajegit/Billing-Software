@@ -10,7 +10,6 @@
   </a>
 </div>
 
-<!-- Search & Filter Bar -->
 <div class="card shadow-sm border-0 mb-3">
   <div class="card-body p-2 p-md-3">
     <div class="row g-2 align-items-center">
@@ -29,124 +28,17 @@
   </div>
 </div>
 
-<!-- Sales Table -->
-<div class="card shadow-sm border-0">
-  <div class="card-body p-0">
-    <div style="overflow-x: hidden;">
-      <table class="table table-hover align-middle mb-0 w-100" id="salesTable" style="font-size: 0.85rem;">
-        <thead class="table-light">
-          <tr>
-            <th style="padding: 0.5rem 0.65rem;">Bill & Date</th>
-            <th style="padding: 0.5rem 0.65rem;">Customer</th>
-            <th style="padding: 0.5rem 0.4rem;" class="text-center">Type</th>
-            <th style="padding: 0.5rem 0.65rem;" class="text-end">Total (₹)</th>
-            <th style="padding: 0.5rem 0.65rem;" class="text-end">Paid / Balance</th>
-            <th style="width: 45px; padding: 0.5rem 0.25rem;" class="text-center">Status</th>
-            <th style="width: 36px; padding: 0.5rem 0.35rem;" class="text-center"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% if (invoices && invoices.length > 0) { %>
-            <% invoices.forEach(inv => { %>
-              <tr>
-                <!-- Bill No & Date Combined -->
-                <td style="padding: 0.45rem 0.65rem;">
-                  <a href="/invoices/view/<%= inv.id %>" class="fw-bold font-monospace text-decoration-none text-primary">
-                    <%= inv.invoice_number %>
-                  </a>
-                  <div class="text-muted" style="font-size: 0.72rem;"><%= inv.invoice_date %></div>
-                </td>
-
-                <!-- Customer Name & Phone -->
-                <td style="padding: 0.45rem 0.65rem;">
-                  <div class="fw-semibold text-dark text-truncate" style="max-width: 170px;"><%= inv.party_name %></div>
-                  <% if (inv.party_phone) { %>
-                    <div class="text-muted" style="font-size: 0.72rem;"><%= inv.party_phone %></div>
-                  <% } %>
-                </td>
-
-                <!-- Type Badge -->
-                <td style="padding: 0.45rem 0.4rem;" class="text-center">
-                  <% if (inv.is_gst_bill) { %>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.68rem; padding: 0.2em 0.45em;">GST</span>
-                  <% } else { %>
-                    <span class="badge bg-light text-secondary border" style="font-size: 0.68rem; padding: 0.2em 0.45em;">Non-GST</span>
-                  <% } %>
-                </td>
-
-                <!-- Total Amount -->
-                <td style="padding: 0.45rem 0.65rem;" class="text-end fw-bold text-nowrap">₹ <%= parseFloat(inv.grand_total).toFixed(2) %></td>
-
-                <!-- Paid / Balance Due Combined -->
-                <td style="padding: 0.45rem 0.65rem;" class="text-end text-nowrap">
-                  <div class="text-success fw-medium" style="font-size: 0.8rem;">Paid: ₹ <%= parseFloat(inv.paid_amount || 0).toFixed(2) %></div>
-                  <% if (parseFloat(inv.balance_due) > 0.001) { %>
-                    <div class="text-danger fw-semibold" style="font-size: 0.72rem;">Due: ₹ <%= parseFloat(inv.balance_due).toFixed(2) %></div>
-                  <% } else { %>
-                    <div class="text-muted" style="font-size: 0.72rem;">Cleared</div>
-                  <% } %>
-                </td>
-
-                <!-- Shorthand Status Badge (P, PP, UP) -->
-                <td style="width: 45px; padding: 0.45rem 0.25rem;" class="text-center">
-                  <% if (inv.payment_status === 'paid') { %>
-                    <span class="badge badge-status badge-status-paid" style="font-size: 0.72rem; padding: 0.2em 0.45em; min-width: 24px; display: inline-block;" title="Paid">P</span>
-                  <% } else if (inv.payment_status === 'partial') { %>
-                    <span class="badge badge-status badge-status-partial" style="font-size: 0.72rem; padding: 0.2em 0.45em; min-width: 24px; display: inline-block;" title="Partially Paid">PP</span>
-                  <% } else { %>
-                    <span class="badge badge-status badge-status-unpaid" style="font-size: 0.72rem; padding: 0.2em 0.45em; min-width: 24px; display: inline-block;" title="Unpaid">UP</span>
-                  <% } %>
-                </td>
-
-                <!-- 3-Dot Action Menu -->
-                <td style="padding: 0.45rem 0.35rem;" class="text-center">
-                  <div class="dropdown">
-                    <button class="btn btn-light btn-sm p-1 border-0 rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions" style="width: 28px; height: 28px; line-height: 1;">
-                      <i class="bi bi-three-dots-vertical text-secondary"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border py-1">
-                      <li>
-                        <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/invoices/view/<%= inv.id %>">
-                          <i class="bi bi-eye text-primary me-2"></i> View Bill
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/invoices/print/<%= inv.id %>" target="_blank">
-                          <i class="bi bi-printer text-success me-2"></i> Print A4 Invoice
-                        </a>
-                      </li>
-                      <% if (inv.party_id) { %>
-                        <li>
-                          <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/payments/create?party_id=<%= inv.party_id %>&type=payment_in">
-                            <i class="bi bi-cash-stack text-warning me-2"></i> Record Payment
-                          </a>
-                        </li>
-                      <% } %>
-                      <li><hr class="dropdown-divider my-1"></li>
-                      <li>
-                        <form action="/invoices/delete/<%= inv.id %>" method="POST" class="m-0 form-delete-confirm" data-confirm-message="Are you sure you want to delete invoice <%= inv.invoice_number %>? Item inventory stock and party balances will be restored automatically.">
-                          <button type="submit" class="dropdown-item py-1 px-3 small d-flex align-items-center text-danger border-0 bg-transparent w-100">
-                            <i class="bi bi-trash me-2"></i> Delete Invoice
-                          </button>
-                        </form>
-                      </li>
-                    </ul>
-                  </div>
-                </td>
-              </tr>
-            <% }); %>
-          <% } else { %>
-            <tr>
-              <td colspan="7" class="text-center py-5 text-muted">
-                <i class="bi bi-receipt-cutoff fs-2 d-block mb-2 text-secondary"></i>
-                No sales bills recorded yet. Click <strong>"Create New Sale Bill"</strong> to generate your first invoice.
-              </td>
-            </tr>
-          <% } %>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+<%- include('../partials/invoice_list_table', {
+  invoices,
+  tableId: 'salesTable',
+  partyLabel: 'Customer',
+  paymentType: 'payment_in',
+  paymentLabel: 'Record Payment',
+  deleteLabel: 'Delete Invoice',
+  deleteMessagePrefix: 'Are you sure you want to delete invoice',
+  deleteMessageSuffix: 'Item inventory stock and party balances will be restored automatically.',
+  emptyIcon: 'bi-receipt-cutoff',
+  emptyMessage: 'No sales bills recorded yet. Click <strong>"Create New Sale Bill"</strong> to generate your first invoice.'
+}) %>
 
 <%- include('../partials/footer') %>

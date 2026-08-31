@@ -202,6 +202,26 @@ function initDatabase() {
       FOREIGN KEY (firm_id) REFERENCES firms(id) ON DELETE CASCADE
     );
 
+    -- Platform Global Settings
+    CREATE TABLE IF NOT EXISTS platform_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Admin Audit Logs
+    CREATE TABLE IF NOT EXISTS admin_audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      admin_id INTEGER,
+      admin_name TEXT,
+      action TEXT NOT NULL,
+      target_type TEXT,
+      target_id TEXT,
+      details TEXT,
+      ip_address TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     -- Indexes for performance
     CREATE INDEX IF NOT EXISTS idx_firms_user ON firms(user_id);
     CREATE INDEX IF NOT EXISTS idx_firm_settings ON firm_settings(firm_id);
@@ -212,7 +232,40 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
     CREATE INDEX IF NOT EXISTS idx_payments_firm ON payments(firm_id);
     CREATE INDEX IF NOT EXISTS idx_payments_party ON payments(party_id);
+    CREATE INDEX IF NOT EXISTS idx_admin_logs ON admin_audit_logs(created_at);
   `);
+
+  // Auto-migration: Check and add 'role' and 'status' columns if not existing
+  const userColumns = db.pragma('table_info(users)').map(c => c.name);
+  if (!userColumns.includes('role')) {
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
+  }
+  if (!userColumns.includes('status')) {
+    db.exec("ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active'");
+  }
+
+  // Seed / Ensure Admin Account: Phone 9414223562 with password admin123
+  try {
+    const bcrypt = require('bcryptjs');
+    const adminPhone = '9414223562';
+    const existingAdmin = db.prepare('SELECT * FROM users WHERE phone = ?').get(adminPhone);
+    const hashedPassword = bcrypt.hashSync('admin123', 10);
+
+    if (!existingAdmin) {
+      db.prepare(`
+        INSERT INTO users (name, phone, password, role, status)
+        VALUES (?, ?, ?, 'admin', 'active')
+      `).run('Admin', adminPhone, hashedPassword);
+      console.log('✅ Admin account seeded: Phone 9414223562 / Password admin123 (Role: admin)');
+    } else {
+      // Ensure role is admin and password is updated to admin123
+      db.prepare(`
+        UPDATE users SET role = 'admin', status = 'active', password = ? WHERE phone = ?
+      `).run(hashedPassword, adminPhone);
+    }
+  } catch (err) {
+    console.error('Error ensuring admin user:', err.message);
+  }
 }
 
 initDatabase();

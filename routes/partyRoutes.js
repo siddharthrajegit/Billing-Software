@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const partyController = require('../controllers/partyController');
-const { ensureAuthenticated, ensureActiveFirm } = require('../middleware/auth');
+const { ensureUserOnly, ensureActiveFirm } = require('../middleware/auth');
 
-router.use(ensureAuthenticated, ensureActiveFirm);
+router.use(ensureUserOnly, ensureActiveFirm);
 
 router.get('/', partyController.listParties);
 router.get('/create', partyController.getCreate);

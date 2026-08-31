@@ -44,6 +44,10 @@ passport.use(
           });
         }
 
+        if (user.status === 'suspended') {
+          return done(null, false, { message: 'Your business subscriber account has been suspended. Please contact platform support.' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
           return done(null, false, { message: 'Invalid password. Please check and try again.' });
@@ -93,13 +97,8 @@ if (googleClientId && googleClientSecret && googleClientId !== 'your_google_clie
           }
 
           if (!user) {
-            user = User.create({
-              name,
-              email,
-              phone: null,
-              password: null,
-              google_id: profile.id,
-              avatar
+            return done(null, false, {
+              message: 'No registered account found for this Google email. Access is manually provisioned by the platform administrator. Please contact support.'
             });
           }
 

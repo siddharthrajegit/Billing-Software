@@ -1,0 +1,91 @@
+<%- include('../partials/header') %>
+
+<%- include('_nav') %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+      <div class="card-header bg-white py-3 border-0">
+        <h4 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-sliders me-2 text-primary"></i> SaaS Platform Governance & Limits
+        </h4>
+        <p class="text-muted small mb-0 mt-1">Configure global subscription limits, user storage quotas, and system broadcast banners</p>
+      </div>
+
+      <div class="card-body p-4 pt-2">
+        <form action="/admin/settings" method="POST">
+          <!-- 1. Quota & Limit Governance -->
+          <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">1. Resource Quotas & Limits</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-dark">Max Business Firms Allowed per Subscriber</label>
+              <div class="input-group">
+                <input type="number" name="max_firms_limit" class="form-control font-monospace" min="1" max="10" value="<%= settings.max_firms_limit || 2 %>" required>
+                <span class="input-group-text bg-light small">Firms / Account</span>
+              </div>
+              <div class="form-text small">Default is 2 firms per registered subscriber.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-dark">Max Single File Upload Size Limit</label>
+              <div class="input-group">
+                <input type="number" name="max_upload_size_mb" class="form-control font-monospace" min="1" max="20" value="<%= settings.max_upload_size_mb || 2 %>" required>
+                <span class="input-group-text bg-light small">MB (Megabytes)</span>
+              </div>
+              <div class="form-text small">Protects server from large file dumps. Default is 2MB.</div>
+            </div>
+          </div>
+
+          <!-- 2. System Announcement Banner -->
+          <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">2. System-Wide Broadcast Announcement</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" role="switch" id="enableAnnouncement" name="enable_announcement" value="1" <%= settings.enable_announcement === '1' ? 'checked' : '' %>>
+                <label class="form-check-label fw-bold text-dark" for="enableAnnouncement">
+                  Display Announcement Banner to All Business Subscribers
+                </label>
+              </div>
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label fw-bold small text-dark">Announcement Message Text</label>
+              <input type="text" name="platform_announcement" class="form-control" placeholder="e.g. Plan renewals and GST updates for this quarter are now active." value="<%= settings.platform_announcement || '' %>">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold small text-dark">Banner Visual Theme</label>
+              <select name="platform_announcement_type" class="form-select">
+                <option value="info" <%= settings.platform_announcement_type === 'info' ? 'selected' : '' %>>Info (Blue)</option>
+                <option value="warning" <%= settings.platform_announcement_type === 'warning' ? 'selected' : '' %>>Warning (Yellow)</option>
+                <option value="success" <%= settings.platform_announcement_type === 'success' ? 'selected' : '' %>>Success (Green)</option>
+                <option value="danger" <%= settings.platform_announcement_type === 'danger' ? 'selected' : '' %>>Alert / Urgent (Red)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 3. Operational Governance -->
+          <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">3. Platform Maintenance & Safety</h5>
+          <div class="mb-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="maintenanceMode" name="maintenance_mode" value="1" <%= settings.maintenance_mode === '1' ? 'checked' : '' %>>
+              <label class="form-check-label fw-bold text-dark" for="maintenanceMode">
+                Enable Maintenance Notice Mode
+              </label>
+            </div>
+            <small class="text-muted">Displays a maintenance indicator to users while platform remains fully manageable by admin.</small>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a href="/admin" class="btn btn-light rounded-pill px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+              <i class="bi bi-check2-circle me-1"></i> Save Platform Settings
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

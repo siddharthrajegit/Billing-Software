@@ -4,7 +4,7 @@ const path = require('path');
 const session = require('express-session');
 const flash = require('connect-flash');
 const passport = require('./config/passport');
-const { ensureAuthenticated, ensureActiveFirm } = require('./middleware/auth');
+const { ensureAuthenticated, ensureAdmin, ensureUserOnly, ensureActiveFirm } = require('./middleware/auth');
 const reportController = require('./controllers/reportController');
 
 // Route modules
@@ -17,6 +17,9 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const backupRoutes = require('./routes/backupRoutes');
 const settingRoutes = require('./routes/settingRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const legalRoutes = require('./routes/legalRoutes');
+const { Admin, Firm } = require('./models');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +57,7 @@ app.use(passport.session());
 // Global template variables middleware
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
+  res.locals.isAdmin = req.user && req.user.role === 'admin';
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   res.locals.info_msg = req.flash('info_msg');
@@ -61,10 +65,33 @@ app.use((req, res, next) => {
   res.locals.activeMenu = '';
   res.locals.activeFirm = null;
   res.locals.userFirms = [];
+  if (req.user && req.user.role !== 'admin') {
+    try {
+      const userFirms = Firm.getByUserId(req.user.id);
+      res.locals.userFirms = userFirms || [];
+      let activeFirmId = req.session.activeFirmId;
+      let activeFirm = null;
+      if (activeFirmId && userFirms) {
+        activeFirm = userFirms.find(f => f.id === parseInt(activeFirmId));
+      }
+      if (!activeFirm && userFirms && userFirms.length > 0) {
+        activeFirm = userFirms.find(f => f.is_default === 1) || userFirms[0];
+      }
+      res.locals.activeFirm = activeFirm;
+    } catch (err) {
+      console.error('Error setting global firm variables:', err);
+    }
+  }
+  try {
+    res.locals.platformSettings = Admin.getAllPlatformSettings();
+  } catch (e) {
+    res.locals.platformSettings = {};
+  }
   next();
 });
 
 // Routes
+app.use('/admin', adminRoutes);
 app.use('/auth', authRoutes);
 app.use('/firms', firmRoutes);
 app.use('/items', itemRoutes);
@@ -73,13 +100,26 @@ app.use('/payments', paymentRoutes);
 app.use('/reports', reportRoutes);
 app.use('/backup', backupRoutes);
 app.use('/settings', settingRoutes);
+
+// Legal & Public Policies
+app.use('/legal', legalRoutes);
+app.get('/terms', (req, res) => res.redirect('/legal?tab=terms'));
+app.get('/privacy', (req, res) => res.redirect('/legal?tab=privacy'));
+app.get('/refund-policy', (req, res) => res.redirect('/legal?tab=refund'));
+app.get('/disclaimer', (req, res) => res.redirect('/legal?tab=disclaimer'));
+app.get('/security', (req, res) => res.redirect('/legal?tab=security'));
+
 app.use('/', invoiceRoutes);
 
 // Dashboard Route (Root redirect / Dashboard)
-app.get('/dashboard', ensureAuthenticated, ensureActiveFirm, reportController.getDashboard);
+app.get('/dashboard', ensureUserOnly, ensureActiveFirm, reportController.getDashboard);
 app.get('/', (req, res) => {
   if (req.isAuthenticated()) {
-    res.redirect('/dashboard');
+    if (req.user.role === 'admin') {
+      res.redirect('/admin');
+    } else {
+      res.redirect('/dashboard');
+    }
   } else {
     res.redirect('/auth/login');
   }

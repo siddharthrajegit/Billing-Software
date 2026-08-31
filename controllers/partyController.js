@@ -51,6 +51,26 @@ const partyController = {
         return res.redirect('/parties/create');
       }
 
+      // Strict Phone Number Validation (10 digits)
+      let cleanPhone = null;
+      if (phone && phone.trim()) {
+        cleanPhone = phone.trim().replace(/[^0-9]/g, '');
+        if (cleanPhone.length !== 10) {
+          req.flash('error_msg', `Invalid Phone Number: Mobile number must contain exactly 10 digits (received ${cleanPhone.length} digits). Neither more nor less.`);
+          return res.redirect('/parties/create');
+        }
+      }
+
+      // Strict GSTIN Validation (15 alphanumeric chars)
+      let cleanGstin = null;
+      if (gstin && gstin.trim()) {
+        cleanGstin = gstin.trim().toUpperCase().replace(/[^0-9A-Z]/g, '');
+        if (cleanGstin.length !== 15) {
+          req.flash('error_msg', `Invalid GSTIN Number: GST number must contain exactly 15 characters (received ${cleanGstin.length} characters). Neither more nor less.`);
+          return res.redirect('/parties/create');
+        }
+      }
+
       // Auto resolve state code if needed
       let matchedCode = state_code;
       if (!matchedCode && state) {
@@ -62,9 +82,9 @@ const partyController = {
         firm_id: firmId,
         type: type || 'customer',
         name: name.trim(),
-        phone: phone ? phone.trim() : null,
+        phone: cleanPhone,
         email: email ? email.trim() : null,
-        gstin: gstin ? gstin.trim().toUpperCase() : null,
+        gstin: cleanGstin,
         pan: pan ? pan.trim().toUpperCase() : null,
         billing_address: billing_address ? billing_address.trim() : null,
         shipping_address: shipping_address ? shipping_address.trim() : null,
@@ -115,18 +135,45 @@ const partyController = {
         return res.redirect(`/parties/edit/${partyId}`);
       }
 
+      // Strict Phone Number Validation (10 digits)
+      let cleanPhone = null;
+      if (phone && phone.trim()) {
+        cleanPhone = phone.trim().replace(/[^0-9]/g, '');
+        if (cleanPhone.length !== 10) {
+          req.flash('error_msg', `Invalid Phone Number: Mobile number must contain exactly 10 digits (received ${cleanPhone.length} digits). Neither more nor less.`);
+          return res.redirect(`/parties/edit/${partyId}`);
+        }
+      }
+
+      // Strict GSTIN Validation (15 alphanumeric chars)
+      let cleanGstin = null;
+      if (gstin && gstin.trim()) {
+        cleanGstin = gstin.trim().toUpperCase().replace(/[^0-9A-Z]/g, '');
+        if (cleanGstin.length !== 15) {
+          req.flash('error_msg', `Invalid GSTIN Number: GST number must contain exactly 15 characters (received ${cleanGstin.length} characters). Neither more nor less.`);
+          return res.redirect(`/parties/edit/${partyId}`);
+        }
+      }
+
+      // Auto resolve state code if needed
+      let matchedCode = state_code;
+      if (!matchedCode && state) {
+        const found = GST_STATES.find(s => s.name.toLowerCase() === state.toLowerCase());
+        if (found) matchedCode = found.code;
+      }
+
       Party.update(partyId, firmId, {
         type: type || 'customer',
         name: name.trim(),
-        phone: phone ? phone.trim() : null,
+        phone: cleanPhone,
         email: email ? email.trim() : null,
-        gstin: gstin ? gstin.trim().toUpperCase() : null,
+        gstin: cleanGstin,
         pan: pan ? pan.trim().toUpperCase() : null,
         billing_address: billing_address ? billing_address.trim() : null,
         shipping_address: shipping_address ? shipping_address.trim() : null,
         city: city ? city.trim() : null,
         state: state ? state.trim() : null,
-        state_code: state_code || null,
+        state_code: matchedCode || null,
         pincode: pincode ? pincode.trim() : null,
         opening_balance: parseFloat(opening_balance) || 0
       });

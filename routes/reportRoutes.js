@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const reportController = require('../controllers/reportController');
-const { ensureAuthenticated, ensureActiveFirm } = require('../middleware/auth');
+const { ensureUserOnly, ensureActiveFirm } = require('../middleware/auth');
 
-router.use(ensureAuthenticated, ensureActiveFirm);
+router.use(ensureUserOnly, ensureActiveFirm);
 
 router.get('/', reportController.getReportsIndex);
 router.get('/parties', reportController.getPartyReport);
