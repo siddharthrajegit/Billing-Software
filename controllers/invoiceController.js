@@ -306,7 +306,7 @@ function renderInvoiceForm(req, res, type, title, invoice = null) {
 const invoiceController = {
   listSales: (req, res) => {
     res.render('invoices/sales_list', {
-      title: 'Sales Invoices',
+      title: 'Sales Records',
       invoices: Invoice.getByFirmId(req.activeFirm.id, 'sale'),
       activeMenu: 'sales'
     });
@@ -314,18 +314,18 @@ const invoiceController = {
 
   listPurchases: (req, res) => {
     res.render('invoices/purchase_list', {
-      title: 'Purchase Bills',
+      title: 'Purchase Records',
       invoices: Invoice.getByFirmId(req.activeFirm.id, 'purchase'),
       activeMenu: 'purchases'
     });
   },
 
   getCreateSale: (req, res) => {
-    renderInvoiceForm(req, res, 'sale', 'Create Sales Invoice');
+    renderInvoiceForm(req, res, 'sale', 'Create Sales Record');
   },
 
   getCreatePurchase: (req, res) => {
-    renderInvoiceForm(req, res, 'purchase', 'Create Purchase Bill');
+    renderInvoiceForm(req, res, 'purchase', 'Create Purchase Record');
   },
 
   postCreate: (req, res) => {
@@ -400,7 +400,7 @@ const invoiceController = {
     }
 
     res.render('invoices/view', {
-      title: `${invoice.type === 'purchase' ? 'Purchase Bill' : 'Sales Invoice'} - ${invoice.invoice_number}`,
+      title: `${invoice.type === 'purchase' ? 'Purchase Record' : 'Sales Record'} - ${invoice.invoice_number}`,
       invoice,
       firm: req.activeFirm,
       activeMenu: invoice.type === 'purchase' ? 'purchases' : 'sales'
@@ -411,12 +411,12 @@ const invoiceController = {
     const firmId = req.activeFirm.id;
     const invoice = Invoice.getById(req.params.id, firmId);
     if (!invoice) {
-      req.flash('error_msg', 'Invoice not found.');
+      req.flash('error_msg', 'Record not found.');
       return res.redirect('/sales');
     }
 
     res.render('invoices/download', {
-      title: `Download Bill - ${invoice.invoice_number}`,
+      title: `Download Record - ${invoice.invoice_number}`,
       invoice,
       firm: req.activeFirm,
       settings: Setting.get(firmId),
@@ -427,12 +427,12 @@ const invoiceController = {
   getPrintA4: (req, res) => {
     const invoice = Invoice.getById(req.params.id, req.activeFirm.id);
     if (!invoice) {
-      req.flash('error_msg', 'Invoice not found.');
+      req.flash('error_msg', 'Record not found.');
       return res.redirect('/sales');
     }
 
     res.render('invoices/print_a4', {
-      title: `Print - ${invoice.invoice_number}`,
+      title: `Print Record - ${invoice.invoice_number}`,
       invoice,
       firm: req.activeFirm,
       layout: false
@@ -443,16 +443,16 @@ const invoiceController = {
     try {
       const invoice = Invoice.getById(req.params.id, req.activeFirm.id);
       if (!invoice) {
-        req.flash('error_msg', 'Invoice not found.');
+        req.flash('error_msg', 'Record not found.');
         return res.redirect('/sales');
       }
 
       Invoice.delete(req.params.id, req.activeFirm.id);
-      req.flash('success_msg', `Invoice "${invoice.invoice_number}" deleted and item inventory restored.`);
+      req.flash('success_msg', `Record "${invoice.invoice_number}" deleted and item inventory restored.`);
       res.redirect(invoice.type === 'purchase' ? '/purchases' : '/sales');
     } catch (err) {
-      console.error('Delete invoice error:', err);
-      req.flash('error_msg', 'Failed to delete invoice.');
+      console.error('Delete record error:', err);
+      req.flash('error_msg', 'Failed to delete record.');
       res.redirect('/sales');
     }
   }

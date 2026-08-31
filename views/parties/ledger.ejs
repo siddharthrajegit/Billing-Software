@@ -185,7 +185,7 @@
                 <td style="padding: 0.45rem 0.4rem;" class="text-center">
                   <% if (tx.entry_type === 'invoice') { %>
                     <span class="badge <%= tx.type === 'sale' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-info-subtle text-info border border-info-subtle' %>" style="font-size: 0.68rem; padding: 0.2em 0.45em;">
-                      <%= tx.type === 'sale' ? 'Sale Bill' : 'Purchase Bill' %>
+                      <%= tx.type === 'sale' ? 'Sales Record' : 'Purchase Record' %>
                     </span>
                   <% } else { %>
                     <span class="badge <%= tx.type === 'payment_in' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle' %>" style="font-size: 0.68rem; padding: 0.2em 0.45em;">

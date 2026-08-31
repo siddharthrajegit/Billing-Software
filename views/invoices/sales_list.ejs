@@ -2,11 +2,11 @@
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
   <div>
-    <h3 class="fw-bold mb-1">Sales Invoices</h3>
-    <p class="text-muted small mb-0">Create GST and Non-GST sales bills, track payments, and print invoices</p>
+    <h3 class="fw-bold mb-1">Sales Records</h3>
+    <p class="text-muted small mb-0">Record GST and Non-GST digital sales references, track customer payments & ledger data</p>
   </div>
   <a href="/sales/create" class="btn btn-success shadow-sm">
-    <i class="bi bi-plus-circle me-1"></i> Create New Sale Bill
+    <i class="bi bi-plus-circle me-1"></i> Create New Sales Record
   </a>
 </div>
 
@@ -16,12 +16,12 @@
       <div class="col-md-6">
         <div class="input-group">
           <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-          <input type="text" class="form-control border-start-0" placeholder="Search sales by bill no, customer, phone..." data-table-search="salesTable">
+          <input type="text" class="form-control border-start-0" placeholder="Search sales by record no, customer, phone..." data-table-search="salesTable">
         </div>
       </div>
       <div class="col-md-6 text-md-end">
         <span class="badge bg-light text-dark border p-2">
-          Total Bills: <strong><%= invoices.length %></strong>
+          Total Records: <strong><%= invoices.length %></strong>
         </span>
       </div>
     </div>
@@ -34,11 +34,11 @@
   partyLabel: 'Customer',
   paymentType: 'payment_in',
   paymentLabel: 'Record Payment',
-  deleteLabel: 'Delete Invoice',
-  deleteMessagePrefix: 'Are you sure you want to delete invoice',
+  deleteLabel: 'Delete Record',
+  deleteMessagePrefix: 'Are you sure you want to delete sales record',
   deleteMessageSuffix: 'Item inventory stock and party balances will be restored automatically.',
   emptyIcon: 'bi-receipt-cutoff',
-  emptyMessage: 'No sales bills recorded yet. Click <strong>"Create New Sale Bill"</strong> to generate your first invoice.'
+  emptyMessage: 'No sales records logged yet. Click <strong>"Create New Sales Record"</strong> to record your first entry.'
 }) %>
 
 <%- include('../partials/footer') %>

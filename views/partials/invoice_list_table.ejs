@@ -4,7 +4,7 @@
       <table class="table table-hover align-middle mb-0 w-100" id="<%= tableId %>" style="font-size: 0.85rem;">
         <thead class="table-light">
           <tr>
-            <th style="padding: 0.5rem 0.65rem;">Bill & Date</th>
+            <th style="padding: 0.5rem 0.65rem;">Record & Date</th>
             <th style="padding: 0.5rem 0.65rem;"><%= partyLabel %></th>
             <th style="padding: 0.5rem 0.4rem;" class="text-center">Type</th>
             <th style="padding: 0.5rem 0.65rem;" class="text-end">Total (₹)</th>
@@ -62,22 +62,22 @@
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border py-1">
                       <li>
                         <a class="dropdown-item py-1 px-3 small d-flex align-items-center text-primary fw-semibold" href="/invoices/download/<%= inv.id %>">
-                          <i class="bi bi-download text-primary me-2"></i> Download Bill
+                          <i class="bi bi-download text-primary me-2"></i> Download Record
                         </a>
                       </li>
                       <li>
                         <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/invoices/view/<%= inv.id %>">
-                          <i class="bi bi-eye text-secondary me-2"></i> View Bill
+                          <i class="bi bi-eye text-secondary me-2"></i> View Record
                         </a>
                       </li>
                       <li>
                         <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/invoices/edit/<%= inv.id %>">
-                          <i class="bi bi-pencil-square text-warning me-2"></i> Edit Bill
+                          <i class="bi bi-pencil-square text-warning me-2"></i> Edit Record
                         </a>
                       </li>
                       <li>
                         <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/invoices/print/<%= inv.id %>" target="_blank">
-                          <i class="bi bi-printer text-success me-2"></i> Print A4 Invoice
+                          <i class="bi bi-printer text-success me-2"></i> Print Digital Record
                         </a>
                       </li>
                       <% if (inv.party_id) { %>

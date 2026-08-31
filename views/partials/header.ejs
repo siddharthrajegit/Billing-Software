@@ -68,7 +68,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link <%= typeof activeMenu !== 'undefined' && activeMenu === 'admin-invoices' ? 'active' : '' %>" href="/admin/invoices">
-              <i class="bi bi-receipt"></i> Platform Invoices
+              <i class="bi bi-receipt"></i> Platform Records
             </a>
           </li>
           <li class="nav-item">
@@ -129,7 +129,7 @@
 
       <!-- Quick CTA Button -->
       <a href="/sales/create" class="btn btn-success btn-sm w-100 mb-3 shadow-sm d-flex align-items-center justify-content-center py-2 fw-semibold">
-        <i class="bi bi-plus-circle-fill me-1"></i> New Sale Bill
+        <i class="bi bi-plus-circle-fill me-1"></i> New Sales Record
       </a>
 
       <!-- Navigation Menu Items for Users -->
@@ -142,12 +142,12 @@
           </li>
           <li class="nav-item">
             <a class="nav-link <%= typeof activeMenu !== 'undefined' && activeMenu === 'sales' ? 'active' : '' %>" href="/sales">
-              <i class="bi bi-cart-check"></i> Sales Invoices
+              <i class="bi bi-cart-check"></i> Sales Records
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link <%= typeof activeMenu !== 'undefined' && activeMenu === 'purchases' ? 'active' : '' %>" href="/purchases">
-              <i class="bi bi-bag-plus"></i> Purchase Bills
+              <i class="bi bi-bag-plus"></i> Purchase Records
             </a>
           </li>
           <li class="nav-item">
@@ -234,7 +234,7 @@
       </div>
       <% if (typeof isAdmin === 'undefined' || !isAdmin) { %>
         <a href="/sales/create" class="btn btn-success btn-sm">
-          <i class="bi bi-plus-lg"></i> Bill
+          <i class="bi bi-plus-lg"></i> Record
         </a>
       <% } else { %>
         <div></div>

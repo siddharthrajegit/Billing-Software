@@ -70,17 +70,17 @@
 
         <div class="card shadow-sm border-0 mb-3">
           <div class="card-header bg-white py-3">
-            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-cart-check text-primary me-2"></i> Sales Bill Configuration</h5>
-            <small class="text-muted">Manage how sales invoices are constructed, calculated, and presented</small>
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-cart-check text-primary me-2"></i> Sales Record Configuration</h5>
+            <small class="text-muted">Manage how sales records are constructed, calculated, and presented</small>
           </div>
           <div class="card-body p-4">
 
             <!-- 1. GST & Non-GST Default Mode -->
             <div class="mb-4 pb-3 border-bottom">
               <label class="form-label fw-bold text-dark mb-1">
-                <i class="bi bi-toggle-on text-primary me-1"></i> Default Bill Tax Mode (GST vs Non-GST)
+                <i class="bi bi-toggle-on text-primary me-1"></i> Default Record Tax Mode (GST vs Non-GST)
               </label>
-              <p class="text-muted small mb-3">Choose whether new sales bills start with GST tax calculations enabled or in Non-GST format by default.</p>
+              <p class="text-muted small mb-3">Choose whether new sales records start with GST tax calculations enabled or in Non-GST format by default.</p>
 
               <div class="row g-3">
                 <div class="col-sm-6">
@@ -88,10 +88,10 @@
                     <div class="form-check">
                       <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="gstTypeGst" value="gst" <%= settings.sales.default_gst_type === 'gst' ? 'checked' : '' %>>
                       <label class="form-check-label fw-semibold text-dark w-100" for="gstTypeGst">
-                        <span class="badge bg-primary me-1">GST</span> GST Tax Invoice (Default)
+                        <span class="badge bg-primary me-1">GST</span> GST Sales Record (Default)
                       </label>
                     </div>
-                    <small class="text-muted d-block mt-1 ps-4">Automatic CGST, SGST, IGST calculations and HSN code tracking on bills.</small>
+                    <small class="text-muted d-block mt-1 ps-4">Automatic CGST, SGST, IGST calculations and HSN code tracking on records.</small>
                   </div>
                 </div>
 
@@ -100,10 +100,10 @@
                     <div class="form-check">
                       <input class="form-check-input ms-0 me-2" type="radio" name="default_gst_type" id="gstTypeNonGst" value="non_gst" <%= settings.sales.default_gst_type === 'non_gst' ? 'checked' : '' %>>
                       <label class="form-check-label fw-semibold text-dark w-100" for="gstTypeNonGst">
-                        <span class="badge bg-light text-secondary border me-1">Non-GST</span> Non-GST / Retail Bill
+                        <span class="badge bg-light text-secondary border me-1">Non-GST</span> Non-GST Business Record
                       </label>
                     </div>
-                    <small class="text-muted d-block mt-1 ps-4">Simple invoice with total amounts without requiring GST breakdown.</small>
+                    <small class="text-muted d-block mt-1 ps-4">Simple record with total amounts without requiring GST breakdown.</small>
                   </div>
                 </div>
               </div>

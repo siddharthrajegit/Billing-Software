@@ -69,7 +69,7 @@
 
   <!-- Total Sales -->
   <div class="col-sm-6 col-xl-3">
-    <a href="/sales" class="kpi-card-link" title="Click to view all sales invoices">
+    <a href="/sales" class="kpi-card-link" title="Click to view all sales records">
       <div class="card kpi-card kpi-sales h-100 shadow-sm p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
@@ -107,7 +107,7 @@
 
   <!-- Total Payables (We Owe Suppliers) -->
   <div class="col-sm-6 col-xl-3">
-    <a href="/purchases" class="kpi-card-link" title="Click to view purchase bills">
+    <a href="/purchases" class="kpi-card-link" title="Click to view purchase records">
       <div class="card kpi-card kpi-payable h-100 shadow-sm p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
@@ -124,13 +124,13 @@
   </div>
 </div>
 
-<!-- Full-Width Recent Invoices Section -->
+<!-- Full-Width Recent Records Section -->
 <div class="card shadow-sm border-0 mb-4">
   <div class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-3">
-    <span class="fw-bold text-dark fs-6"><i class="bi bi-clock-history me-2 text-primary"></i> Recent Invoices</span>
+    <span class="fw-bold text-dark fs-6"><i class="bi bi-clock-history me-2 text-primary"></i> Recent Records</span>
     <div class="d-flex gap-2">
-      <a href="/sales" class="btn btn-outline-primary btn-sm">View All Sales Bills</a>
-      <a href="/sales/create" class="btn btn-success btn-sm"><i class="bi bi-plus-lg me-1"></i> New Bill</a>
+      <a href="/sales" class="btn btn-outline-primary btn-sm">View All Sales Records</a>
+      <a href="/sales/create" class="btn btn-success btn-sm"><i class="bi bi-plus-lg me-1"></i> New Sales Record</a>
     </div>
   </div>
   <div class="card-body p-0">
@@ -138,7 +138,7 @@
       <table class="table table-hover align-middle mb-0 w-100" style="font-size: 0.85rem;">
         <thead class="table-light">
           <tr>
-            <th style="padding: 0.5rem 0.65rem;">Bill & Date</th>
+            <th style="padding: 0.5rem 0.65rem;">Record & Date</th>
             <th style="padding: 0.5rem 0.65rem;">Customer</th>
             <th style="padding: 0.5rem 0.4rem;" class="text-center">Type</th>
             <th style="padding: 0.5rem 0.65rem;" class="text-end">Total (₹)</th>
@@ -196,22 +196,22 @@
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border py-1">
                       <li>
                         <a class="dropdown-item py-1 px-3 small d-flex align-items-center text-primary fw-semibold" href="/invoices/download/<%= inv.id %>">
-                          <i class="bi bi-download text-primary me-2"></i> Download Bill
+                          <i class="bi bi-download text-primary me-2"></i> Download Record
                         </a>
                       </li>
                       <li>
                         <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/invoices/view/<%= inv.id %>">
-                          <i class="bi bi-eye text-secondary me-2"></i> View Bill
+                          <i class="bi bi-eye text-secondary me-2"></i> View Record
                         </a>
                       </li>
                       <li>
                         <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/invoices/edit/<%= inv.id %>">
-                          <i class="bi bi-pencil-square text-warning me-2"></i> Edit Bill
+                          <i class="bi bi-pencil-square text-warning me-2"></i> Edit Record
                         </a>
                       </li>
                       <li>
                         <a class="dropdown-item py-1 px-3 small d-flex align-items-center" href="/invoices/print/<%= inv.id %>" target="_blank">
-                          <i class="bi bi-printer text-success me-2"></i> Print A4 Invoice
+                          <i class="bi bi-printer text-success me-2"></i> Print Digital Record
                         </a>
                       </li>
                       <% if (inv.party_id) { %>
@@ -223,9 +223,9 @@
                       <% } %>
                       <li><hr class="dropdown-divider my-1"></li>
                       <li>
-                        <form action="/invoices/delete/<%= inv.id %>" method="POST" class="m-0 form-delete-confirm" data-confirm-message="Are you sure you want to delete invoice <%= inv.invoice_number %>? Item inventory stock and party balances will be restored automatically.">
+                        <form action="/invoices/delete/<%= inv.id %>" method="POST" class="m-0 form-delete-confirm" data-confirm-message="Are you sure you want to delete sales record <%= inv.invoice_number %>? Item inventory stock and party balances will be restored automatically.">
                           <button type="submit" class="dropdown-item py-1 px-3 small d-flex align-items-center text-danger border-0 bg-transparent w-100">
-                            <i class="bi bi-trash me-2"></i> Delete Invoice
+                            <i class="bi bi-trash me-2"></i> Delete Record
                           </button>
                         </form>
                       </li>
@@ -238,7 +238,7 @@
             <tr>
               <td colspan="7" class="text-center py-5 text-muted">
                 <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
-                No sales invoices generated yet. Click <strong>"New Sale Bill"</strong> to create your first bill.
+                No sales records generated yet. Click <strong>"New Sales Record"</strong> to log your first record.
               </td>
             </tr>
           <% } %>

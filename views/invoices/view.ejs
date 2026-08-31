@@ -5,7 +5,7 @@
   <div>
     <a href="<%= invoice.type === 'purchase' ? '/purchases' : '/sales' %>" class="text-decoration-none text-muted small">&larr; Back to <%= invoice.type === 'purchase' ? 'Purchases' : 'Sales' %></a>
     <h3 class="fw-bold mb-0 mt-1">
-      <%= invoice.type === 'purchase' ? 'Purchase Bill' : 'Sales Invoice' %>: <span class="font-monospace text-primary"><%= invoice.invoice_number %></span>
+      <%= invoice.type === 'purchase' ? 'Purchase Record' : 'Sales Record' %>: <span class="font-monospace text-primary"><%= invoice.invoice_number %></span>
     </h3>
   </div>
 
@@ -16,26 +16,26 @@
       </a>
     <% } %>
     <a href="/invoices/download/<%= invoice.id %>" class="btn btn-primary shadow-sm">
-      <i class="bi bi-download me-1"></i> Download Bill
+      <i class="bi bi-download me-1"></i> Download Record
     </a>
     <a href="/invoices/edit/<%= invoice.id %>" class="btn btn-outline-warning shadow-sm">
-      <i class="bi bi-pencil-square me-1"></i> Edit Bill
+      <i class="bi bi-pencil-square me-1"></i> Edit Record
     </a>
     <a href="/invoices/print/<%= invoice.id %>" target="_blank" class="btn btn-outline-secondary shadow-sm">
-      <i class="bi bi-printer me-1"></i> Print A4 Invoice
+      <i class="bi bi-printer me-1"></i> Print Record
     </a>
-    <form action="/invoices/delete/<%= invoice.id %>" method="POST" class="d-inline form-delete-confirm" data-confirm-message="Are you sure you want to delete this invoice? Item inventory stock will be restored automatically.">
-      <button type="submit" class="btn btn-outline-danger" title="Delete Invoice">
+    <form action="/invoices/delete/<%= invoice.id %>" method="POST" class="d-inline form-delete-confirm" data-confirm-message="Are you sure you want to delete this record? Item inventory stock will be restored automatically.">
+      <button type="submit" class="btn btn-outline-danger" title="Delete Record">
         <i class="bi bi-trash me-1"></i> Delete
       </button>
     </form>
   </div>
 </div>
 
-<!-- Invoice Card Preview -->
+<!-- Record Card Preview -->
 <div class="card shadow-sm border-0 mb-4">
   <div class="card-body p-4 p-md-5">
-    <!-- Header: Business Info & Invoice Info -->
+    <!-- Header: Business Info & Record Info -->
     <div class="row border-bottom pb-4 mb-4">
       <div class="col-md-7">
         <div class="d-flex align-items-center mb-3">
@@ -59,11 +59,11 @@
 
       <div class="col-md-5 text-md-end mt-3 mt-md-0">
         <h5 class="fw-bold text-uppercase text-primary mb-2">
-          <%= invoice.is_gst_bill ? 'Tax Invoice' : 'Bill of Supply / Retail Invoice' %>
+          <%= invoice.is_gst_bill ? (invoice.type === 'purchase' ? 'GST Purchase Record' : 'GST Sales Record') : (invoice.type === 'purchase' ? 'Purchase Record' : 'Sales Record') %>
         </h5>
         <div class="small">
-          <div><strong>Invoice No:</strong> <span class="font-monospace"><%= invoice.invoice_number %></span></div>
-          <div><strong>Date:</strong> <%= invoice.invoice_date %></div>
+          <div><strong>Record No:</strong> <span class="font-monospace"><%= invoice.invoice_number %></span></div>
+          <div><strong>Record Date:</strong> <%= invoice.invoice_date %></div>
           <% if (invoice.due_date) { %><div><strong>Due Date:</strong> <%= invoice.due_date %></div><% } %>
           <div><strong>Payment Mode:</strong> <%= (invoice.payment_mode || 'Cash').toUpperCase() %></div>
           <div class="mt-2">
@@ -84,7 +84,7 @@
     <div class="row border-bottom pb-4 mb-4">
       <div class="col-12">
         <h6 class="fw-bold text-uppercase text-secondary small mb-2">
-          <%= invoice.type === 'purchase' ? 'Billed From (Supplier)' : 'Billed To (Customer)' %>
+          <%= invoice.type === 'purchase' ? 'Party (Supplier / Vendor)' : 'Party (Customer / Client)' %>
         </h6>
         <div class="fw-bold text-dark fs-6"><%= invoice.party_name %></div>
         <div class="small text-muted">
@@ -98,64 +98,76 @@
 
     <!-- Line Items Table -->
     <div class="table-responsive mb-4">
-      <table class="table table-bordered mb-0">
+      <table class="table table-bordered align-middle">
         <thead class="table-light">
           <tr>
-            <th class="text-center" style="width: 35px;">#</th>
-            <th>Item Name / Description</th>
-            <th style="width: 100px;">HSN/SAC</th>
-            <th class="text-end" style="width: 70px;">Qty</th>
-            <th class="text-center" style="width: 70px;">Unit</th>
-            <th class="text-end" style="width: 100px;">Rate (₹)</th>
+            <th class="text-center" style="width: 40px;">#</th>
+            <th>Item Description</th>
+            <th class="text-center">HSN/SAC</th>
+            <th class="text-center">Qty</th>
+            <th class="text-end">Rate (₹)</th>
             <% if (invoice.is_gst_bill) { %>
-              <th class="text-center" style="width: 80px;">GST %</th>
+              <th class="text-center">GST %</th>
+              <th class="text-end">Tax (₹)</th>
             <% } %>
-            <th class="text-end" style="width: 120px;">Total (₹)</th>
+            <th class="text-end">Total (₹)</th>
           </tr>
         </thead>
         <tbody>
           <% if (invoice.items && invoice.items.length > 0) { %>
-            <% invoice.items.forEach((item, idx) => { %>
+            <% invoice.items.forEach((item, index) => { %>
               <tr>
-                <td class="text-center text-muted small"><%= idx + 1 %></td>
-                <td class="fw-medium"><%= item.item_name %></td>
-                <td class="font-monospace small text-muted"><%= item.hsn_code || '--' %></td>
-                <td class="text-end"><%= item.quantity %></td>
-                <td class="text-center text-muted small"><%= item.unit %></td>
-                <td class="text-end">₹ <%= parseFloat(item.rate).toFixed(2) %></td>
+                <td class="text-center text-muted small"><%= index + 1 %></td>
+                <td>
+                  <div class="fw-semibold text-dark"><%= item.item_name %></div>
+                  <% if (item.description) { %>
+                    <div class="text-muted small"><%= item.description %></div>
+                  <% } %>
+                </td>
+                <td class="text-center font-monospace small"><%= item.hsn_code || '--' %></td>
+                <td class="text-center">
+                  <strong><%= parseFloat(item.quantity).toFixed(2) %></strong>
+                  <span class="text-muted small"><%= item.unit || 'PCS' %></span>
+                </td>
+                <td class="text-end">₹ <%= parseFloat(item.price).toFixed(2) %></td>
                 <% if (invoice.is_gst_bill) { %>
-                  <td class="text-center"><%= item.tax_rate %>%</td>
+                  <td class="text-center small"><%= parseFloat(item.tax_rate || 0) %>%</td>
+                  <td class="text-end text-muted small">₹ <%= parseFloat(item.tax_amount || 0).toFixed(2) %></td>
                 <% } %>
-                <td class="text-end fw-semibold">₹ <%= parseFloat(item.total_amount).toFixed(2) %></td>
+                <td class="text-end fw-bold">₹ <%= parseFloat(item.total_amount).toFixed(2) %></td>
               </tr>
             <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="<%= invoice.is_gst_bill ? 8 : 6 %>" class="text-center text-muted py-4">No items listed in this record.</td>
+            </tr>
           <% } %>
         </tbody>
       </table>
     </div>
 
-    <!-- Summary & Bank Info -->
-    <div class="row">
-      <div class="col-md-6 mb-3 mb-md-0">
-        <!-- Bank Details -->
-        <% if (firm.bank_name || firm.bank_account_no || firm.upi_id) { %>
-          <div class="card bg-light border-0 p-3 mb-3">
-            <h6 class="fw-bold small text-uppercase mb-2 text-secondary">Bank & Payment Details</h6>
-            <div class="small text-muted">
-              <% if (firm.bank_name) { %><div><strong>Bank:</strong> <%= firm.bank_name %> (<%= firm.bank_branch || '' %>)</div><% } %>
-              <% if (firm.bank_account_no) { %><div><strong>A/C No:</strong> <span class="font-monospace"><%= firm.bank_account_no %></span></div><% } %>
-              <% if (firm.bank_ifsc) { %><div><strong>IFSC:</strong> <span class="font-monospace"><%= firm.bank_ifsc %></span></div><% } %>
-              <% if (firm.upi_id) { %><div><strong>UPI ID:</strong> <span class="font-monospace"><%= firm.upi_id %></span></div><% } %>
-            </div>
+    <!-- Totals Summary & Terms -->
+    <div class="row g-4">
+      <div class="col-md-6">
+        <% if (invoice.notes) { %>
+          <div class="mb-3">
+            <h6 class="fw-bold small text-uppercase text-muted mb-1">Notes / Remarks</h6>
+            <p class="small text-muted mb-0"><%= invoice.notes %></p>
           </div>
         <% } %>
 
-        <% if (invoice.terms) { %>
-          <div class="small text-muted">
-            <strong>Terms & Conditions:</strong>
-            <p class="mb-0 mt-1"><%= invoice.terms %></p>
+        <% if (firm.terms_and_conditions) { %>
+          <div class="mb-3">
+            <h6 class="fw-bold small text-uppercase text-muted mb-1">Terms & Conditions</h6>
+            <div class="small text-muted" style="white-space: pre-line;"><%= firm.terms_and_conditions %></div>
           </div>
         <% } %>
+
+        <!-- Digital Reference Record Notice -->
+        <div class="alert alert-light border small text-muted mt-3 mb-0">
+          <i class="bi bi-info-circle me-1 text-primary"></i>
+          <strong>Digital Reference Record:</strong> This document is created for internal business bookkeeping and accounting data entry. Use these figures for filing returns or sharing with your tax professional.
+        </div>
       </div>
 
       <div class="col-md-6">

@@ -60,7 +60,7 @@
             <% summary.forEach(s => { %>
               <tr>
                 <td class="fw-bold">
-                  <%= s.is_gst_bill ? 'GST Tax Invoices' : 'Non-GST / Exempt Bills' %>
+                  <%= s.is_gst_bill ? 'GST Sales Records' : 'Non-GST / Exempt Records' %>
                 </td>
                 <td class="text-center"><%= s.invoice_count %></td>
                 <td class="text-end fw-semibold">₹ <%= parseFloat(s.total_taxable).toFixed(2) %></td>
@@ -74,7 +74,7 @@
           <% } else { %>
             <tr>
               <td colspan="8" class="text-center py-4 text-muted">
-                No sales invoices found for the selected period.
+                No sales records found for the selected period.
               </td>
             </tr>
           <% } %>
@@ -84,10 +84,10 @@
   </div>
 </div>
 
-<!-- Detailed Invoices Table -->
+<!-- Detailed Records Table -->
 <div class="card shadow-sm border-0">
   <div class="card-header bg-white py-3">
-    <h6 class="fw-bold mb-0 text-dark">Invoice Wise GST Register</h6>
+    <h6 class="fw-bold mb-0 text-dark">Record Wise GST Register</h6>
   </div>
   <div class="card-body p-0">
     <div class="table-responsive">
@@ -95,14 +95,14 @@
         <thead>
           <tr>
             <th>Date</th>
-            <th>Invoice No</th>
+            <th>Record No</th>
             <th>Customer Name</th>
             <th>Customer GSTIN</th>
             <th class="text-end">Taxable Value (₹)</th>
             <th class="text-end">CGST (₹)</th>
             <th class="text-end">SGST (₹)</th>
             <th class="text-end">IGST (₹)</th>
-            <th class="text-end">Invoice Value (₹)</th>
+            <th class="text-end">Gross Total (₹)</th>
           </tr>
         </thead>
         <tbody>

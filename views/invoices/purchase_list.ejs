@@ -2,11 +2,11 @@
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
   <div>
-    <h3 class="fw-bold mb-1">Purchase Bills</h3>
-    <p class="text-muted small mb-0">Record inward purchases from suppliers and automatically add inventory stock</p>
+    <h3 class="fw-bold mb-1">Purchase Records</h3>
+    <p class="text-muted small mb-0">Record inward purchases from suppliers and automatically track inventory additions</p>
   </div>
   <a href="/purchases/create" class="btn btn-primary shadow-sm">
-    <i class="bi bi-plus-circle me-1"></i> Record New Purchase Bill
+    <i class="bi bi-plus-circle me-1"></i> Record New Purchase
   </a>
 </div>
 
@@ -16,12 +16,12 @@
       <div class="col-md-6">
         <div class="input-group">
           <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-          <input type="text" class="form-control border-start-0" placeholder="Search purchase bills by bill no, supplier, phone..." data-table-search="purchasesTable">
+          <input type="text" class="form-control border-start-0" placeholder="Search purchase records by record no, supplier, phone..." data-table-search="purchasesTable">
         </div>
       </div>
       <div class="col-md-6 text-md-end">
         <span class="badge bg-light text-dark border p-2">
-          Total Purchases: <strong><%= invoices.length %></strong>
+          Total Records: <strong><%= invoices.length %></strong>
         </span>
       </div>
     </div>
@@ -34,11 +34,11 @@
   partyLabel: 'Supplier',
   paymentType: 'payment_out',
   paymentLabel: 'Pay Supplier',
-  deleteLabel: 'Delete Bill',
-  deleteMessagePrefix: 'Are you sure you want to delete purchase bill',
+  deleteLabel: 'Delete Record',
+  deleteMessagePrefix: 'Are you sure you want to delete purchase record',
   deleteMessageSuffix: 'Item inventory stock and party balances will be adjusted automatically.',
   emptyIcon: 'bi-bag-plus',
-  emptyMessage: 'No purchase bills recorded yet. Click <strong>"Record New Purchase Bill"</strong> to add your first supplier invoice.'
+  emptyMessage: 'No purchase records recorded yet. Click <strong>"Record New Purchase"</strong> to add your first supplier entry.'
 }) %>
 
 <%- include('../partials/footer') %>
