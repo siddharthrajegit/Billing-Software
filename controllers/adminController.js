@@ -417,6 +417,26 @@ const adminController = {
 
       const auditLogs = Admin.getRecentLogs(35);
 
+      // Subscriber Quota Pool metrics (200 MB / user)
+      const allUsers = Admin.getAllUsers();
+      const regularUsers = allUsers.filter(u => u.role !== 'admin');
+      let totalSubscriberUsedBytes = 0;
+      regularUsers.forEach(u => {
+        if (u.storage) {
+          totalSubscriberUsedBytes += u.storage.totalUsedBytes;
+        }
+      });
+      const totalPoolQuotaMB = regularUsers.length * 200;
+      const totalPoolUsedMB = (totalSubscriberUsedBytes / (1024 * 1024)).toFixed(2);
+      const poolUsagePercentage = totalPoolQuotaMB > 0 ? ((totalPoolUsedMB / totalPoolQuotaMB) * 100).toFixed(1) : 0;
+
+      // Sort users by storage usage descending
+      const topStorageUsers = [...regularUsers].sort((a, b) => {
+        const aBytes = a.storage ? a.storage.totalUsedBytes : 0;
+        const bBytes = b.storage ? b.storage.totalUsedBytes : 0;
+        return bBytes - aBytes;
+      });
+
       res.render('admin/system', {
         title: 'System Health & Maintenance',
         activeMenu: 'admin-system',
@@ -424,7 +444,13 @@ const adminController = {
         storage: {
           uploads: uploadsStats,
           dbSize: formatBytes(dbSize),
-          totalStorage: formatBytes(uploadsStats.totalBytes + dbSize)
+          totalStorage: formatBytes(uploadsStats.totalBytes + dbSize),
+          poolQuotaMB: totalPoolQuotaMB,
+          poolUsedMB: totalPoolUsedMB,
+          poolUsagePercentage,
+          userQuotaMB: 200,
+          subscribersCount: regularUsers.length,
+          topStorageUsers
         },
         auditLogs
       });

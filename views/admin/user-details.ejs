@@ -73,12 +73,19 @@
   </div>
   <div class="col-sm-6 col-lg-3">
     <div class="card border-0 shadow-sm p-3 bg-light rounded-3">
-      <div class="text-muted small fw-bold text-uppercase">Registered Assets</div>
-      <div class="d-flex justify-content-between align-items-baseline mt-1">
-        <span class="fw-bold text-dark fs-5"><%= firms.length %>/2 Firms</span>
-        <span class="badge bg-secondary"><%= items.length %> Items / <%= parties.length %> Parties</span>
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="text-muted small fw-bold text-uppercase">Storage Used (200 MB)</div>
+        <span class="badge <%= storage && storage.isOverQuota ? 'bg-danger' : (storage && storage.totalUsedPercentage > 60 ? 'bg-warning text-dark' : 'bg-primary') %>">
+          <%= storage ? storage.totalUsedPercentage : 0 %>%
+        </span>
       </div>
-      <small class="text-muted">Database records under user</small>
+      <h3 class="fw-bold text-dark mb-1 mt-1 font-monospace"><%= storage ? storage.totalUsedMB : '0.00' %> <span class="fs-6 fw-normal text-muted">/ 200 MB</span></h3>
+      <div class="progress mb-1" style="height: 6px;">
+        <div class="progress-bar <%= storage && storage.isOverQuota ? 'bg-danger' : (storage && storage.totalUsedPercentage > 60 ? 'bg-warning' : 'bg-success') %>" role="progressbar" style="width: <%= Math.max(storage ? storage.totalUsedPercentage : 0, 3) %>%;"></div>
+      </div>
+      <small class="text-muted" style="font-size: 0.72rem;">
+        <%= firms.length <= 1 ? 'Single firm quota: 200 MB' : '2 Firms: 100 MB each (200 MB total)' %>
+      </small>
     </div>
   </div>
 </div>
@@ -105,6 +112,11 @@
       <li class="nav-item" role="presentation">
         <button class="nav-link fw-bold py-2 px-3 text-dark" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices-content" type="button" role="tab">
           <i class="bi bi-receipt-cutoff text-danger me-2"></i> All Business Records (<%= invoices.length %>)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold py-2 px-3 text-dark" id="storage-tab" data-bs-toggle="tab" data-bs-target="#storage-content" type="button" role="tab">
+          <i class="bi bi-hdd-fill text-info me-2"></i> Storage Allocation (<%= storage ? storage.totalUsedMB : 0 %> / 200 MB)
         </button>
       </li>
     </ul>
@@ -382,6 +394,90 @@
             No records logged by this subscriber.
           </div>
         <% } %>
+      </div>
+
+      <!-- TAB 5: Storage Allocation & Footprint -->
+      <div class="tab-pane fade" id="storage-content" role="tabpanel">
+        <div class="row g-4 mb-4">
+          <div class="col-lg-5">
+            <div class="card border border-2 shadow-none rounded-3 h-100 p-3 bg-light">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-hdd-network-fill text-primary me-2"></i> User Storage Pool Overview</h6>
+                <span class="badge bg-primary px-2 py-1">200 MB Allotted</span>
+              </div>
+              <div class="text-center py-3">
+                <div class="display-5 fw-bold font-monospace text-dark mb-1">
+                  <%= storage ? storage.totalUsedMB : 0 %> <span class="fs-4 text-muted">/ 200 MB</span>
+                </div>
+                <div class="text-muted small mb-3">Total Storage Consumed Across All Firms</div>
+                <div class="progress mb-2 mx-auto" style="height: 10px; max-width: 320px;">
+                  <div class="progress-bar <%= storage && storage.isOverQuota ? 'bg-danger' : (storage && storage.totalUsedPercentage > 60 ? 'bg-warning' : 'bg-success') %>" role="progressbar" style="width: <%= Math.max(storage ? storage.totalUsedPercentage : 0, 4) %>%;"></div>
+                </div>
+                <span class="badge bg-white text-dark border font-monospace px-3 py-1">
+                  <%= storage ? storage.totalUsedPercentage : 0 %>% of 200 MB Quota Utilized
+                </span>
+              </div>
+              <div class="border-top pt-3 mt-2 small">
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                  <span class="text-muted">Registered Firms:</span>
+                  <strong><%= firms.length %> / 2 Firms</strong>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                  <span class="text-muted">Quota Strategy:</span>
+                  <strong><%= firms.length <= 1 ? '1 Firm (200 MB Allotted)' : '2 Firms (100 MB Each)' %></strong>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                  <span class="text-muted">Quota Status:</span>
+                  <span class="fw-bold <%= storage && storage.isOverQuota ? 'text-danger' : 'text-success' %>">
+                    <%= storage && storage.isOverQuota ? 'OVER QUOTA LIMIT' : 'HEALTHY (< 200 MB)' %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-7">
+            <div class="card border border-2 shadow-none rounded-3 h-100 p-3">
+              <h6 class="fw-bold text-dark mb-3"><i class="bi bi-diagram-3-fill text-success me-2"></i> Per-Firm Storage Quota Allocation</h6>
+              <% if (storage && storage.firmsStorage && storage.firmsStorage.length > 0) { %>
+                <div class="d-flex flex-column gap-3">
+                  <% storage.firmsStorage.forEach((fsInfo, idx) => { %>
+                    <div class="p-3 border rounded-3 bg-white">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                          <strong class="text-dark"><%= fsInfo.firmName %></strong>
+                          <span class="badge bg-light text-secondary border ms-1 font-monospace">ID: <%= fsInfo.firmId %></span>
+                        </div>
+                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle font-monospace">
+                          <%= fsInfo.totalUsedMB %> MB / <%= fsInfo.quotaMB %> MB
+                        </span>
+                      </div>
+                      <div class="progress mb-2" style="height: 6px;">
+                        <div class="progress-bar <%= fsInfo.usedPercentage > 85 ? 'bg-danger' : (fsInfo.usedPercentage > 60 ? 'bg-warning' : 'bg-success') %>" role="progressbar" style="width: <%= Math.max(fsInfo.usedPercentage, 3) %>%;"></div>
+                      </div>
+                      <div class="row g-2 text-muted small mt-1" style="font-size: 0.75rem;">
+                        <div class="col-sm-4">
+                          <i class="bi bi-database me-1 text-primary"></i> DB Records: <strong><%= fsInfo.dbAllocatedMB %> MB</strong>
+                        </div>
+                        <div class="col-sm-4">
+                          <i class="bi bi-image me-1 text-success"></i> Media & Logos: <strong><%= fsInfo.mediaMB %> MB</strong>
+                        </div>
+                        <div class="col-sm-4">
+                          <i class="bi bi-archive me-1 text-warning"></i> Backups: <strong><%= fsInfo.backupsMB %> MB</strong>
+                        </div>
+                      </div>
+                    </div>
+                  <% }); %>
+                </div>
+              <% } else { %>
+                <div class="text-center py-4 text-muted">
+                  <i class="bi bi-hdd fs-2 d-block mb-2 text-secondary opacity-50"></i>
+                  No business firms registered under this subscriber account.
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>

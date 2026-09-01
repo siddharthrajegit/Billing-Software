@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const db = require('../config/db');
 
 // State list with standard 2-digit GST state codes
@@ -1340,14 +1342,190 @@ const Admin = {
       SELECT COUNT(*) as total_parties FROM parties
     `).get();
 
+    // 7. Storage Pool Aggregation (200 MB quota per user)
+    let totalPoolUsedBytes = 0;
+    const regularUsers = db.prepare("SELECT id FROM users WHERE role != 'admin'").all();
+    regularUsers.forEach(u => {
+      const st = Admin.getUserStorageStats(u.id);
+      if (st) {
+        totalPoolUsedBytes += st.totalUsedBytes;
+      }
+    });
+    const totalPoolQuotaMB = regularUsers.length * 200;
+    const totalPoolUsedMB = parseFloat((totalPoolUsedBytes / (1024 * 1024)).toFixed(2));
+    const poolUsagePercentage = totalPoolQuotaMB > 0 ? parseFloat(((totalPoolUsedMB / totalPoolQuotaMB) * 100).toFixed(1)) : 0;
+
     return {
       users: userStats || { total: 0, active: 0, suspended: 0, admins: 0 },
       firms: firmStats || { total: 0 },
       invoices: invoiceStats || { total_count: 0, sales_count: 0, purchase_count: 0, total_sales_amount: 0, total_purchase_amount: 0, total_paid_amount: 0, total_balance_due: 0 },
       payments: paymentStats || { total_payments: 0, total_received: 0, total_paid_out: 0 },
       items: itemStats || { total_items: 0 },
-      parties: partyStats || { total_parties: 0 }
+      parties: partyStats || { total_parties: 0 },
+      storage: {
+        totalPoolQuotaMB,
+        totalPoolUsedMB,
+        poolUsagePercentage,
+        totalPoolUsedBytes,
+        quotaPerUserMB: 200
+      }
     };
+  },
+
+  getUserStorageStats: (userId) => {
+    try {
+      const user = db.prepare('SELECT id, name, email, phone FROM users WHERE id = ?').get(userId);
+      if (!user) return null;
+
+      const userFirms = db.prepare('SELECT id, name, logo_path, signature_path FROM firms WHERE user_id = ?').all(userId);
+      const firmCount = userFirms.length;
+
+      // Quota: 200 MB total per user
+      // 1 firm: 200 MB quota for that firm
+      // 2 firms: 100 MB quota for each firm
+      const totalUserQuotaBytes = 200 * 1024 * 1024; // 200 MB
+      const perFirmQuotaBytes = firmCount <= 1 ? totalUserQuotaBytes : (100 * 1024 * 1024);
+
+      let totalUserUsedBytes = 0;
+      const firmsStorage = [];
+
+      const publicDir = path.join(__dirname, '..', 'public');
+      const backupsDir = path.join(__dirname, '..', 'backups');
+
+      userFirms.forEach(firm => {
+        // 1. Calculate database size for this firm
+        const itemsStats = db.prepare(`
+          SELECT COALESCE(SUM(LENGTH(name) + LENGTH(COALESCE(description, '')) + LENGTH(COALESCE(hsn_code, '')) + LENGTH(COALESCE(unit, '')) + 64), 0) as bytes,
+                 COUNT(*) as count
+          FROM items WHERE firm_id = ?
+        `).get(firm.id);
+
+        const invoicesStats = db.prepare(`
+          SELECT COALESCE(SUM(LENGTH(invoice_number) + LENGTH(COALESCE(party_name, '')) + LENGTH(COALESCE(notes, '')) + LENGTH(COALESCE(terms, '')) + 128), 0) as bytes,
+                 COUNT(*) as count
+          FROM invoices WHERE firm_id = ?
+        `).get(firm.id);
+
+        const lineItemsStats = db.prepare(`
+          SELECT COALESCE(SUM(LENGTH(item_name) + LENGTH(COALESCE(hsn_code, '')) + 48), 0) as bytes,
+                 COUNT(*) as count
+          FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE firm_id = ?)
+        `).get(firm.id);
+
+        const partiesStats = db.prepare(`
+          SELECT COALESCE(SUM(LENGTH(name) + LENGTH(COALESCE(phone, '')) + LENGTH(COALESCE(email, '')) + LENGTH(COALESCE(billing_address, '')) + LENGTH(COALESCE(shipping_address, '')) + LENGTH(COALESCE(gstin, '')) + 64), 0) as bytes,
+                 COUNT(*) as count
+          FROM parties WHERE firm_id = ?
+        `).get(firm.id);
+
+        const paymentsStats = db.prepare(`
+          SELECT COALESCE(SUM(LENGTH(payment_number) + LENGTH(COALESCE(notes, '')) + LENGTH(COALESCE(reference_no, '')) + 64), 0) as bytes,
+                 COUNT(*) as count
+          FROM payments WHERE firm_id = ?
+        `).get(firm.id);
+
+        // Raw SQLite data bytes + B-Tree indexing factor
+        const rawDbBytes = ((itemsStats ? itemsStats.bytes : 0) + 
+                            (invoicesStats ? invoicesStats.bytes : 0) + 
+                            (lineItemsStats ? lineItemsStats.bytes : 0) + 
+                            (partiesStats ? partiesStats.bytes : 0) + 
+                            (paymentsStats ? paymentsStats.bytes : 0) + 1024);
+        const dbAllocatedBytes = Math.round(rawDbBytes * 1.5);
+
+        // 2. Uploaded media files
+        let mediaBytes = 0;
+        if (firm.logo_path) {
+          try {
+            const relPath = firm.logo_path.startsWith('/') ? firm.logo_path.slice(1) : firm.logo_path;
+            const fullLogoPath = path.join(publicDir, relPath);
+            if (fs.existsSync(fullLogoPath)) {
+              mediaBytes += fs.statSync(fullLogoPath).size;
+            }
+          } catch (e) {}
+        }
+        if (firm.signature_path) {
+          try {
+            const relPath = firm.signature_path.startsWith('/') ? firm.signature_path.slice(1) : firm.signature_path;
+            const fullSigPath = path.join(publicDir, relPath);
+            if (fs.existsSync(fullSigPath)) {
+              mediaBytes += fs.statSync(fullSigPath).size;
+            }
+          } catch (e) {}
+        }
+
+        // 3. Local backup files
+        let backupsBytes = 0;
+        try {
+          if (fs.existsSync(backupsDir)) {
+            const bFiles = fs.readdirSync(backupsDir);
+            bFiles.forEach(bf => {
+              if (bf.includes(`firm_${firm.id}`) || bf.includes(`user_${userId}`)) {
+                backupsBytes += fs.statSync(path.join(backupsDir, bf)).size;
+              }
+            });
+          }
+        } catch (e) {}
+
+        const firmTotalUsedBytes = dbAllocatedBytes + mediaBytes + backupsBytes;
+        totalUserUsedBytes += firmTotalUsedBytes;
+
+        const firmQuotaMB = Math.round(perFirmQuotaBytes / (1024 * 1024));
+        const firmUsedMB = (firmTotalUsedBytes / (1024 * 1024)).toFixed(2);
+        const firmPercentage = Math.min(100, Math.max(0.1, ((firmTotalUsedBytes / perFirmQuotaBytes) * 100))).toFixed(1);
+
+        firmsStorage.push({
+          firmId: firm.id,
+          firmName: firm.name,
+          dbAllocatedBytes,
+          dbAllocatedMB: (dbAllocatedBytes / (1024 * 1024)).toFixed(2),
+          mediaBytes,
+          mediaMB: (mediaBytes / (1024 * 1024)).toFixed(2),
+          backupsBytes,
+          backupsMB: (backupsBytes / (1024 * 1024)).toFixed(2),
+          totalUsedBytes: firmTotalUsedBytes,
+          totalUsedMB: parseFloat(firmUsedMB),
+          quotaBytes: perFirmQuotaBytes,
+          quotaMB: firmQuotaMB,
+          usedPercentage: parseFloat(firmPercentage),
+          counts: {
+            items: itemsStats ? itemsStats.count : 0,
+            invoices: invoicesStats ? invoicesStats.count : 0,
+            parties: partiesStats ? partiesStats.count : 0,
+            payments: paymentsStats ? paymentsStats.count : 0
+          }
+        });
+      });
+
+      const totalUserQuotaMB = 200;
+      const totalUserUsedMB = (totalUserUsedBytes / (1024 * 1024)).toFixed(2);
+      const totalUserPercentage = Math.min(100, Math.max(0.1, ((totalUserUsedBytes / totalUserQuotaBytes) * 100))).toFixed(1);
+
+      return {
+        userId,
+        userName: user.name,
+        totalQuotaBytes: totalUserQuotaBytes,
+        totalQuotaMB: totalUserQuotaMB,
+        totalUsedBytes: totalUserUsedBytes,
+        totalUsedMB: parseFloat(totalUserUsedMB),
+        totalUsedPercentage: parseFloat(totalUserPercentage),
+        isOverQuota: totalUserUsedBytes > totalUserQuotaBytes,
+        firmCount,
+        quotaPerFirmMB: Math.round(perFirmQuotaBytes / (1024 * 1024)),
+        firmsStorage
+      };
+    } catch (err) {
+      console.error('Error calculating user storage stats:', err);
+      return {
+        userId,
+        totalQuotaMB: 200,
+        totalUsedMB: 0,
+        totalUsedPercentage: 0,
+        isOverQuota: false,
+        firmCount: 0,
+        quotaPerFirmMB: 200,
+        firmsStorage: []
+      };
+    }
   },
 
   getAllUsers: (search = '', role = '', status = '') => {
@@ -1379,7 +1557,14 @@ const Admin = {
     }
 
     query += ` GROUP BY u.id ORDER BY u.created_at DESC`;
-    return db.prepare(query).all(...params);
+    const users = db.prepare(query).all(...params);
+
+    // Attach storage usage for each subscriber
+    users.forEach(u => {
+      u.storage = Admin.getUserStorageStats(u.id);
+    });
+
+    return users;
   },
 
   getUserDeepInfo: (userId) => {
@@ -1443,7 +1628,10 @@ const Admin = {
       WHERE f.user_id = ?
     `).get(userId);
 
-    return { user, firms, parties, items, invoices, financials };
+    // 6. User 200 MB storage quota breakdown
+    const storage = Admin.getUserStorageStats(userId);
+
+    return { user, firms, parties, items, invoices, financials, storage };
   },
 
   getAllFirms: (search = '') => {

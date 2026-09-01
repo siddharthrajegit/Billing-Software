@@ -53,7 +53,8 @@
           <th class="text-center">Role</th>
           <th class="text-center">Status</th>
           <th class="text-center">Firms</th>
-          <th class="text-center">Invoices</th>
+          <th class="text-center">Records</th>
+          <th style="min-width: 140px;">Storage (200 MB)</th>
           <th class="text-end">Gross Sales (₹)</th>
           <th>Registered</th>
           <th class="text-end px-3">Actions</th>
@@ -110,6 +111,24 @@
               </td>
               <td class="text-center">
                 <span class="badge bg-light text-dark border font-monospace"><%= u.invoices_count %></span>
+              </td>
+              <td>
+                <% if (u.storage) { %>
+                  <div>
+                    <div class="d-flex justify-content-between align-items-center mb-1 small">
+                      <span class="fw-bold font-monospace" style="font-size: 0.75rem;"><%= u.storage.totalUsedMB %> MB</span>
+                      <span class="text-muted" style="font-size: 0.68rem;"><%= u.storage.totalUsedPercentage %>%</span>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                      <div class="progress-bar <%= u.storage.totalUsedPercentage > 85 ? 'bg-danger' : (u.storage.totalUsedPercentage > 60 ? 'bg-warning' : 'bg-success') %>" role="progressbar" style="width: <%= Math.max(u.storage.totalUsedPercentage, 3) %>%;"></div>
+                    </div>
+                    <div class="text-muted mt-1" style="font-size: 0.68rem;">
+                      <%= u.storage.firmCount === 1 ? '1 Firm (200MB)' : (u.storage.firmCount === 2 ? '2 Firms (100MB ea)' : 'Cap: 200MB') %>
+                    </div>
+                  </div>
+                <% } else { %>
+                  <span class="text-muted small">0.00 / 200 MB</span>
+                <% } %>
               </td>
               <td class="text-end fw-bold font-monospace text-dark">
                 ₹ <%= parseFloat(u.total_turnover || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }) %>

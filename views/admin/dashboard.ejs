@@ -68,22 +68,22 @@
     </div>
   </div>
 
-  <!-- Storage & System Diagnostics -->
+  <!-- Storage & Quota Pool Diagnostics -->
   <div class="col-sm-6 col-lg-3">
     <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; background: linear-gradient(135deg, #0f172a, #334155); color: #fff;">
       <div class="card-body p-3 d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-start">
           <div>
-            <div class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.72rem;">Server Storage</div>
-            <h2 class="fw-bold mb-0 text-white"><%= storage.totalStorage %></h2>
+            <div class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.72rem;">User Storage Pool</div>
+            <h2 class="fw-bold mb-0 text-white"><%= metrics.storage ? metrics.storage.totalPoolUsedMB : 0 %> <span class="fs-6 fw-normal text-white-50">/ <%= metrics.storage ? metrics.storage.totalPoolQuotaMB : 0 %> MB</span></h2>
           </div>
           <div class="rounded-circle bg-white bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
             <i class="bi bi-hdd-rack-fill fs-5"></i>
           </div>
         </div>
         <div class="mt-3 pt-2 border-top border-white border-opacity-25 d-flex justify-content-between small text-white-50">
-          <span>DB: <strong class="text-white"><%= storage.dbSize %></strong></span>
-          <span>Uploads: <strong class="text-white"><%= storage.uploads.sizeFormatted %></strong> (<%= storage.uploads.fileCount %> files)</span>
+          <span>Cap: <strong class="text-white">200 MB / User</strong></span>
+          <span>Pool Used: <strong class="text-warning"><%= metrics.storage ? metrics.storage.poolUsagePercentage : 0 %>%</strong></span>
         </div>
       </div>
     </div>
