@@ -5,16 +5,18 @@
     <!-- Legal Portal Header -->
     <div class="text-center mb-4">
       <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold mb-2">
-        <i class="bi <%= activeTab === 'about' ? 'bi-info-circle-fill' : 'bi-shield-check' %> me-1"></i> 
-        <%= activeTab === 'about' ? 'Platform Overview & Capabilities' : 'Official Legal & Governance Center' %>
+        <i class="bi <%= activeTab === 'about' ? 'bi-info-circle-fill' : (activeTab === 'pricing' ? 'bi-tags-fill' : 'bi-shield-check') %> me-1"></i> 
+        <%= activeTab === 'about' ? 'Platform Overview & Capabilities' : (activeTab === 'pricing' ? 'Transparent Subscription Plans' : 'Official Legal & Governance Center') %>
       </span>
       <h2 class="fw-bold text-dark">
-        <%= activeTab === 'about' ? 'About RACE FINANCE' : 'RACE FINANCE Legal, Privacy & Terms' %>
+        <%= activeTab === 'about' ? 'About RACE FINANCE' : (activeTab === 'pricing' ? 'RACE FINANCE Pricing & Plans' : 'RACE FINANCE Legal, Privacy & Terms') %>
       </h2>
       <p class="text-muted small mx-auto" style="max-width: 650px;">
         <%= activeTab === 'about' 
           ? 'An integrated, lightweight business management and digital bookkeeping utility engineered specifically for small business owners, traders, and retail merchants.' 
-          : 'Transparent policies, zero-knowledge security commitments, and clear commercial terms governing your use of the RACE FINANCE Billing & Accounting Platform.' %>
+          : (activeTab === 'pricing' 
+              ? 'Straightforward, transparent pricing designed to be accessible for every small business. Start with 1-Month Free.' 
+              : 'Transparent policies, zero-knowledge security commitments, and clear commercial terms governing your use of the RACE FINANCE Billing & Accounting Platform.') %>
       </p>
     </div>
 
@@ -150,6 +152,70 @@
 
             <div class="text-center small text-muted mt-3">
               Have questions? Direct line: <a href="tel:+919672847747" class="text-dark fw-semibold text-decoration-none">+91 9672847747</a> | Email: <a href="mailto:support@racefinance.in" class="text-dark fw-semibold text-decoration-none">support@racefinance.in</a>
+            </div>
+          </div>
+
+        <% } else if (activeTab === 'pricing') { %>
+          <!-- =================== PRICING & SUBSCRIPTION =================== -->
+          <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom flex-wrap gap-2">
+            <div>
+              <h3 class="fw-bold text-dark mb-1">Transparent & Simple Pricing</h3>
+              <div class="text-muted small">Everything included &bull; 1-Month Free Evaluation &bull; Zero Hidden Costs</div>
+            </div>
+            <a href="https://wa.me/919672847747?text=Hello%20RACE%20FINANCE%20Support%2C%20I%20would%20like%20to%20request%20access%20to%20start%20my%20complimentary%201-Month%20Free%20Trial%20for%20my%20business." target="_blank" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+              <i class="bi bi-whatsapp me-1"></i> Start 1-Month Free Trial
+            </a>
+          </div>
+
+          <div class="legal-body text-secondary lh-lg">
+            <div class="row g-4 justify-content-center my-2">
+              <!-- Tier 1: Free Trial -->
+              <div class="col-md-6">
+                <div class="card border border-2 shadow-none rounded-4 p-4 h-100 bg-white text-center">
+                  <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill mx-auto mb-3 small fw-semibold">
+                    Complimentary Evaluation
+                  </span>
+                  <h4 class="fw-bold text-dark mb-1">1-Month Free Trial</h4>
+                  <div class="display-6 fw-bold text-dark my-2">₹0</div>
+                  <p class="small text-muted mb-3">Full access to all features for 30 days. No credit card required.</p>
+                  <ul class="list-unstyled text-start small text-muted lh-lg mb-4 ps-2">
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Up to 2 Business Firms</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Full Digital Sales & Purchase Records</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>FIFO Customer & Supplier Ledgers</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Live Stock & Inventory Tracking</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Accountant GST-Ready Exports</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Offline Backup Downloads (.json)</li>
+                  </ul>
+                  <a href="https://wa.me/919672847747?text=Hello%20RACE%20FINANCE%20Support%2C%20I%20would%20like%20to%20start%20my%20complimentary%201-Month%20Free%20Trial." target="_blank" class="btn btn-outline-success rounded-pill fw-semibold w-100 py-2">
+                    <i class="bi bi-whatsapp me-1"></i> Request Free Trial
+                  </a>
+                </div>
+              </div>
+
+              <!-- Tier 2: Commercial License -->
+              <div class="col-md-6">
+                <div class="card border border-primary border-2 shadow-sm rounded-4 p-4 h-100 bg-white text-center position-relative">
+                  <span class="badge bg-primary text-white px-3 py-1 rounded-pill mx-auto mb-3 small fw-semibold">
+                    Complete Business Suite
+                  </span>
+                  <h4 class="fw-bold text-dark mb-1">Annual Subscription</h4>
+                  <div class="my-2">
+                    <span class="fs-4 fw-bold text-primary">Affordable Small Business Plan</span>
+                  </div>
+                  <p class="small text-muted mb-3">Provisioned directly for your business with dedicated support.</p>
+                  <ul class="list-unstyled text-start small text-muted lh-lg mb-4 ps-2">
+                    <li><i class="bi bi-check-circle-fill text-primary me-2"></i>Everything in Free Trial included</li>
+                    <li><i class="bi bi-check-circle-fill text-primary me-2"></i>Dedicated WhatsApp & Phone Support</li>
+                    <li><i class="bi bi-check-circle-fill text-primary me-2"></i>Zero Account Inspection & High Privacy</li>
+                    <li><i class="bi bi-check-circle-fill text-primary me-2"></i>Automatic Platform Feature Updates</li>
+                    <li><i class="bi bi-check-circle-fill text-primary me-2"></i>Up to 200 MB Storage Allocation</li>
+                    <li><i class="bi bi-check-circle-fill text-primary me-2"></i>1-Year Account Data Protection</li>
+                  </ul>
+                  <a href="https://wa.me/919672847747?text=Hi%20RACE%20FINANCE%20Support%2C%20I%20would%20like%20to%20inquire%20about%20the%20annual%20subscription%20pricing." target="_blank" class="btn btn-primary rounded-pill fw-semibold w-100 py-2">
+                    <i class="bi bi-whatsapp me-1"></i> Contact for Plan Pricing
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -370,6 +436,7 @@
     <div class="card bg-light border-0 p-3 rounded-4 text-center mb-4">
       <div class="d-flex flex-wrap justify-content-center gap-3 small text-muted">
         <a href="/legal?tab=about" class="text-decoration-none <%= activeTab === 'about' ? 'fw-bold text-primary' : 'text-secondary' %>">About & Features</a> &bull;
+        <a href="/legal?tab=pricing" class="text-decoration-none <%= activeTab === 'pricing' ? 'fw-bold text-primary' : 'text-secondary' %>">Pricing</a> &bull;
         <a href="/legal?tab=terms" class="text-decoration-none <%= activeTab === 'terms' ? 'fw-bold text-primary' : 'text-secondary' %>">Terms & Conditions</a> &bull;
         <a href="/legal?tab=privacy" class="text-decoration-none <%= activeTab === 'privacy' ? 'fw-bold text-primary' : 'text-secondary' %>">Privacy Policy</a> &bull;
         <a href="/legal?tab=refund" class="text-decoration-none <%= activeTab === 'refund' ? 'fw-bold text-primary' : 'text-secondary' %>">Refund Policy</a> &bull;

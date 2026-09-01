@@ -252,43 +252,30 @@
         <% } %>
         <%- include('alerts') %>
 <% } else { %>
-<!-- Public / Guest Navigation Header (For Visitors & Unauthenticated Users) -->
-<nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm py-2">
+<!-- Public / Guest Simple Transparent Navigation Header -->
+<nav class="navbar navbar-expand-lg bg-transparent border-0 py-3">
   <div class="container">
-    <a class="navbar-brand d-flex align-items-center fw-bold fs-5 text-dark text-decoration-none" href="/auth/login">
-      <img src="/uploads/logo-1787158589640-807857696.png" alt="RACE FINANCE Logo" class="rounded-2 me-2 shadow-sm" width="32" height="32" style="object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid rgba(0,0,0,0.1);">
-      <span>RACE <span class="text-primary">FINANCE</span></span>
+    <a class="navbar-brand d-flex align-items-center text-dark text-decoration-none fw-bold" href="/auth/login">
+      <img src="/uploads/logo-1787158589640-807857696.png" alt="RACE FINANCE Logo" class="rounded-2 me-2" width="28" height="28" style="object-fit: contain;">
+      <span>RACE FINANCE</span>
     </a>
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#guestNavbarNav" aria-controls="guestNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <i class="bi bi-list fs-4"></i>
+    <button class="navbar-toggler border-0 shadow-none p-1" type="button" data-bs-toggle="collapse" data-bs-target="#guestNavbarNav" aria-controls="guestNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-3"></i>
     </button>
-    <div class="collapse navbar-collapse" id="guestNavbarNav">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
-        <li class="nav-item">
-          <a class="nav-link text-dark fw-medium <%= typeof activeTab !== 'undefined' && activeTab === 'about' ? 'active text-primary fw-bold' : '' %>" href="/about">
-            <i class="bi bi-info-circle me-1"></i> About & Features
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-dark fw-medium <%= typeof activeTab !== 'undefined' && ['terms', 'privacy', 'refund', 'disclaimer', 'security'].includes(activeTab) ? 'active text-primary fw-bold' : '' %>" href="/legal?tab=terms">
-            <i class="bi bi-shield-check me-1"></i> Legal Policies
-          </a>
-        </li>
-      </ul>
-      <div class="d-flex align-items-center gap-2">
-        <a href="https://wa.me/919672847747?text=Hello%20RACE%20FINANCE%20Support%2C%20I%20would%20like%20to%20request%20access%20to%20start%20my%20complimentary%201-Month%20Free%20Trial%20for%20my%20business." target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold">
-          <i class="bi bi-whatsapp me-1"></i> Free Trial
-        </a>
-        <a href="/auth/login" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
-          <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
-        </a>
+    <div class="collapse navbar-collapse justify-content-end" id="guestNavbarNav">
+      <div class="navbar-nav align-items-lg-center gap-3 gap-lg-4 mt-2 mt-lg-0 small">
+        <a class="text-decoration-none text-secondary <%= typeof activeTab !== 'undefined' && activeTab === 'about' ? 'text-dark fw-bold' : '' %>" href="/about">About</a>
+        <a class="text-decoration-none text-secondary" href="https://wa.me/919672847747?text=Hi%20RACE%20FINANCE%20Support%2C%20I%20have%20an%20inquiry%20regarding%20the%20billing%20software." target="_blank">Contact</a>
+        <a class="text-decoration-none text-secondary" href="https://wa.me/919672847747?text=Hello%20RACE%20FINANCE%20Support%2C%20I%20would%20like%20to%20request%20access%20to%20start%20my%20complimentary%201-Month%20Free%20Trial%20for%20my%20business." target="_blank">Free Trial</a>
+        <a class="text-decoration-none text-secondary <%= typeof activeTab !== 'undefined' && activeTab === 'pricing' ? 'text-dark fw-bold' : '' %>" href="/pricing">Pricing</a>
+        <a class="text-decoration-none text-dark fw-semibold" href="/auth/login">Sign In</a>
       </div>
     </div>
   </div>
 </nav>
 
 <!-- Non-Logged In Container (Login, Legal, About, Error Pages) -->
-<main class="py-4">
+<main class="py-3">
   <div class="container">
     <%- include('alerts') %>
 <% } %>

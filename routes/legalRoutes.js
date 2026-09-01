@@ -4,6 +4,7 @@ const legalController = require('../controllers/legalController');
 
 router.get('/', legalController.getLegalPage);
 router.get('/about', legalController.getAbout);
+router.get('/pricing', legalController.getPricing);
 router.get('/terms', legalController.getTerms);
 router.get('/privacy', legalController.getPrivacy);
 router.get('/refund-policy', legalController.getRefund);

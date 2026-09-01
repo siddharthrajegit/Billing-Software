@@ -104,6 +104,7 @@ app.use('/settings', settingRoutes);
 // Legal & Public Policies
 app.use('/legal', legalRoutes);
 app.get('/about', (req, res) => res.redirect('/legal?tab=about'));
+app.get('/pricing', (req, res) => res.redirect('/legal?tab=pricing'));
 app.get('/terms', (req, res) => res.redirect('/legal?tab=terms'));
 app.get('/privacy', (req, res) => res.redirect('/legal?tab=privacy'));
 app.get('/refund-policy', (req, res) => res.redirect('/legal?tab=refund'));
