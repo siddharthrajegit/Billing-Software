@@ -252,7 +252,42 @@
         <% } %>
         <%- include('alerts') %>
 <% } else { %>
-<!-- Non-Logged In Container (Login, Register, Error Pages) -->
+<!-- Public / Guest Navigation Header (For Visitors & Unauthenticated Users) -->
+<nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm py-2">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center fw-bold fs-5 text-dark text-decoration-none" href="/auth/login">
+      <img src="/uploads/logo-1787158589640-807857696.png" alt="RACE FINANCE Logo" class="rounded-2 me-2 shadow-sm" width="32" height="32" style="object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid rgba(0,0,0,0.1);">
+      <span>RACE <span class="text-primary">FINANCE</span></span>
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#guestNavbarNav" aria-controls="guestNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="guestNavbarNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+        <li class="nav-item">
+          <a class="nav-link text-dark fw-medium <%= typeof activeTab !== 'undefined' && activeTab === 'about' ? 'active text-primary fw-bold' : '' %>" href="/about">
+            <i class="bi bi-info-circle me-1"></i> About & Features
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-dark fw-medium <%= typeof activeTab !== 'undefined' && ['terms', 'privacy', 'refund', 'disclaimer', 'security'].includes(activeTab) ? 'active text-primary fw-bold' : '' %>" href="/legal?tab=terms">
+            <i class="bi bi-shield-check me-1"></i> Legal Policies
+          </a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <a href="https://wa.me/919672847747?text=Hello%20RACE%20FINANCE%20Support%2C%20I%20would%20like%20to%20request%20access%20to%20start%20my%20complimentary%201-Month%20Free%20Trial%20for%20my%20business." target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold">
+          <i class="bi bi-whatsapp me-1"></i> Free Trial
+        </a>
+        <a href="/auth/login" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Non-Logged In Container (Login, Legal, About, Error Pages) -->
 <main class="py-4">
   <div class="container">
     <%- include('alerts') %>
