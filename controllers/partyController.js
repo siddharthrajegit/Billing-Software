@@ -229,6 +229,75 @@ const partyController = {
     const type = req.query.type; // customer or supplier
     const parties = Party.getByFirmId(firmId, type);
     res.json(parties);
+  },
+
+  // API endpoint for AJAX quick party creation from invoice form
+  postQuickCreate: (req, res) => {
+    try {
+      const firmId = req.activeFirm.id;
+      const {
+        type, name, phone, email, gstin, pan, billing_address,
+        shipping_address, city, state, state_code, pincode, opening_balance
+      } = req.body;
+
+      if (!name || !name.trim()) {
+        return res.status(400).json({ success: false, error: 'Party / Customer name is required.' });
+      }
+
+      // Strict Phone Validation (10 digits if provided)
+      let cleanPhone = null;
+      if (phone && phone.trim()) {
+        cleanPhone = phone.trim().replace(/[^0-9]/g, '');
+        if (cleanPhone.length !== 10) {
+          return res.status(400).json({ success: false, error: `Invalid Phone: Mobile number must contain exactly 10 digits (received ${cleanPhone.length} digits).` });
+        }
+      }
+
+      // Strict GSTIN Validation (15 alphanumeric characters if provided)
+      let cleanGstin = null;
+      if (gstin && gstin.trim()) {
+        cleanGstin = gstin.trim().toUpperCase().replace(/[^0-9A-Z]/g, '');
+        if (cleanGstin.length !== 15) {
+          return res.status(400).json({ success: false, error: `Invalid GSTIN: GSTIN must be exactly 15 characters long (received ${cleanGstin.length} chars).` });
+        }
+      }
+
+      // State Code auto lookup
+      let matchedStateCode = state_code;
+      if (!matchedStateCode && state) {
+        const found = GST_STATES.find(s => s.name.toLowerCase() === state.toLowerCase());
+        if (found) matchedStateCode = found.code;
+      }
+      if (!matchedStateCode && cleanGstin && cleanGstin.length === 15) {
+        matchedStateCode = cleanGstin.substring(0, 2);
+      }
+
+      const party = Party.create({
+        firm_id: firmId,
+        type: type || 'customer',
+        name: name.trim(),
+        phone: cleanPhone,
+        email: email ? email.trim() : null,
+        gstin: cleanGstin,
+        pan: pan ? pan.trim().toUpperCase() : null,
+        billing_address: billing_address ? billing_address.trim() : null,
+        shipping_address: shipping_address ? shipping_address.trim() : (billing_address ? billing_address.trim() : null),
+        city: city ? city.trim() : null,
+        state: state ? state.trim() : null,
+        state_code: matchedStateCode || null,
+        pincode: pincode ? pincode.trim() : null,
+        opening_balance: parseFloat(opening_balance) || 0
+      });
+
+      res.json({
+        success: true,
+        party,
+        message: `Party "${party.name}" created successfully!`
+      });
+    } catch (err) {
+      console.error('Quick create party error:', err);
+      res.status(500).json({ success: false, error: 'Failed to create party: ' + err.message });
+    }
   }
 };
 

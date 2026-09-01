@@ -8,6 +8,7 @@ router.use(ensureUserOnly, ensureActiveFirm);
 router.get('/', partyController.listParties);
 router.get('/create', partyController.getCreate);
 router.post('/create', partyController.postCreate);
+router.post('/quick-create', partyController.postQuickCreate);
 router.get('/edit/:id', partyController.getEdit);
 router.post('/edit/:id', partyController.postEdit);
 router.get('/ledger/:id', partyController.getLedger);

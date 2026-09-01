@@ -147,6 +147,45 @@ const itemController = {
     const firmId = req.activeFirm.id;
     const items = Item.getByFirmId(firmId);
     res.json(items);
+  },
+
+  // API endpoint for AJAX quick item creation from invoice form
+  postQuickCreate: (req, res) => {
+    try {
+      const firmId = req.activeFirm.id;
+      const {
+        name, item_code, hsn_code, unit, sale_price, purchase_price,
+        tax_rate, tax_inclusive, opening_stock, low_stock_threshold, description
+      } = req.body;
+
+      if (!name || !name.trim()) {
+        return res.status(400).json({ success: false, error: 'Item name is required.' });
+      }
+
+      const item = Item.create({
+        firm_id: firmId,
+        name: name.trim(),
+        item_code: item_code ? item_code.trim() : null,
+        hsn_code: hsn_code ? hsn_code.trim() : null,
+        unit: unit ? unit.trim().toUpperCase() : 'PCS',
+        sale_price: parseFloat(sale_price) || 0,
+        purchase_price: parseFloat(purchase_price) || 0,
+        tax_rate: parseFloat(tax_rate) || 0,
+        tax_inclusive: tax_inclusive === 'on' || tax_inclusive === '1' || tax_inclusive === true ? 1 : 0,
+        opening_stock: parseFloat(opening_stock) || 0,
+        low_stock_threshold: parseFloat(low_stock_threshold) || 0,
+        description: description ? description.trim() : null
+      });
+
+      res.json({
+        success: true,
+        item,
+        message: `Item "${item.name}" created successfully!`
+      });
+    } catch (err) {
+      console.error('Quick create item error:', err);
+      res.status(500).json({ success: false, error: 'Failed to create item: ' + err.message });
+    }
   }
 };
 

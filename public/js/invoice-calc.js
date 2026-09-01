@@ -210,12 +210,31 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderPartyResults(matches) {
     if (!partySearchResults) return;
     partySearchResults.innerHTML = '';
+    const currentQuery = partySearchInput ? partySearchInput.value.trim() : '';
 
     if (matches.length === 0) {
       const emptyDiv = document.createElement('div');
       emptyDiv.className = 'list-group-item text-muted small p-2 text-center';
-      emptyDiv.textContent = 'No matching parties found. You can enter details manually.';
+      emptyDiv.textContent = 'No matching registered parties found.';
       partySearchResults.appendChild(emptyDiv);
+
+      if (currentQuery) {
+        const createBtn = document.createElement('button');
+        createBtn.type = 'button';
+        createBtn.className = 'list-group-item list-group-item-action p-2 text-start text-primary fw-bold bg-primary-subtle border-top';
+        createBtn.innerHTML = `<i class="bi bi-person-plus-fill me-1"></i> + Create "${currentQuery}" as New Party`;
+        createBtn.addEventListener('click', () => {
+          partySearchResults.classList.add('d-none');
+          const modalEl = document.getElementById('modalQuickAddParty');
+          const quickNameInput = document.getElementById('quickPartyName');
+          if (quickNameInput) quickNameInput.value = currentQuery;
+          if (modalEl) {
+            const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modalInstance.show();
+          }
+        });
+        partySearchResults.appendChild(createBtn);
+      }
       partySearchResults.classList.remove('d-none');
       return;
     }
@@ -241,6 +260,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
       partySearchResults.appendChild(btn);
     });
+
+    if (currentQuery) {
+      const createBtn = document.createElement('button');
+      createBtn.type = 'button';
+      createBtn.className = 'list-group-item list-group-item-action p-2 text-start text-primary small fw-semibold border-top bg-light';
+      createBtn.innerHTML = `<i class="bi bi-plus-circle me-1"></i> + Create "${currentQuery}" as New Party`;
+      createBtn.addEventListener('click', () => {
+        partySearchResults.classList.add('d-none');
+        const modalEl = document.getElementById('modalQuickAddParty');
+        const quickNameInput = document.getElementById('quickPartyName');
+        if (quickNameInput) quickNameInput.value = currentQuery;
+        if (modalEl) {
+          const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+          modalInstance.show();
+        }
+      });
+      partySearchResults.appendChild(createBtn);
+    }
 
     partySearchResults.classList.remove('d-none');
   }
@@ -1034,6 +1071,238 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAllCalculations();
       }
     }
+  }
+
+  // Toast Notification Helper
+  function showToastNotification(message, type = 'success') {
+    let toastContainer = document.getElementById('appToastContainer');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'appToastContainer';
+      toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+      toastContainer.style.zIndex = '9999';
+      document.body.appendChild(toastContainer);
+    }
+
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 shadow-lg`;
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+    toastEl.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body fw-medium">
+          ${message}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    `;
+
+    toastContainer.appendChild(toastEl);
+    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+  }
+
+  // 1. Quick Party Modal Handlers
+  const quickPartyForm = document.getElementById('quickPartyForm');
+  const quickPartyAlert = document.getElementById('quickPartyAlert');
+  const quickPartySpinner = document.getElementById('quickPartySpinner');
+  const btnSubmitQuickParty = document.getElementById('btnSubmitQuickParty');
+  const quickPartyState = document.getElementById('quickPartyState');
+  const quickPartyStateCode = document.getElementById('quickPartyStateCode');
+
+  if (quickPartyState && quickPartyStateCode) {
+    quickPartyState.addEventListener('change', () => {
+      const opt = quickPartyState.options[quickPartyState.selectedIndex];
+      quickPartyStateCode.value = opt ? (opt.dataset.code || '') : '';
+    });
+  }
+
+  if (quickPartyForm) {
+    quickPartyForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (quickPartyAlert) quickPartyAlert.classList.add('d-none');
+      if (quickPartySpinner) quickPartySpinner.classList.remove('d-none');
+      if (btnSubmitQuickParty) btnSubmitQuickParty.disabled = true;
+
+      const formData = new FormData(quickPartyForm);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch('/parties/quick-create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.party) {
+          const p = result.party;
+          const newPartyObj = {
+            id: p.id,
+            name: p.name,
+            phone: p.phone || '',
+            gstin: p.gstin || '',
+            address: p.billing_address || '',
+            state: p.state || '',
+            stateCode: p.state_code || ''
+          };
+          partiesList.push(newPartyObj);
+
+          if (partySelect) {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.dataset.name = p.name;
+            opt.dataset.phone = p.phone || '';
+            opt.dataset.gstin = p.gstin || '';
+            opt.dataset.address = p.billing_address || '';
+            opt.dataset.state = p.state || '';
+            opt.dataset.stateCode = p.state_code || '';
+            opt.textContent = `${p.name} ${p.phone ? '(' + p.phone + ')' : ''}`;
+            partySelect.appendChild(opt);
+          }
+
+          // Select the new party directly into the invoice form
+          selectParty(newPartyObj);
+
+          // Close modal and reset form
+          const modalEl = document.getElementById('modalQuickAddParty');
+          if (modalEl) {
+            const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modalInstance.hide();
+          }
+          quickPartyForm.reset();
+
+          showToastNotification(`✓ Party "${p.name}" created and selected!`, 'success');
+        } else {
+          if (quickPartyAlert) {
+            quickPartyAlert.textContent = result.error || 'Failed to create party.';
+            quickPartyAlert.classList.remove('d-none');
+          }
+        }
+      } catch (err) {
+        console.error('Error creating party:', err);
+        if (quickPartyAlert) {
+          quickPartyAlert.textContent = 'Server communication error: ' + err.message;
+          quickPartyAlert.classList.remove('d-none');
+        }
+      } finally {
+        if (quickPartySpinner) quickPartySpinner.classList.add('d-none');
+        if (btnSubmitQuickParty) btnSubmitQuickParty.disabled = false;
+      }
+    });
+  }
+
+  // 2. Quick Item Modal Handlers
+  const quickItemForm = document.getElementById('quickItemForm');
+  const quickItemAlert = document.getElementById('quickItemAlert');
+  const quickItemSpinner = document.getElementById('quickItemSpinner');
+  const btnSubmitQuickItem = document.getElementById('btnSubmitQuickItem');
+
+  if (quickItemForm) {
+    quickItemForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (quickItemAlert) quickItemAlert.classList.add('d-none');
+      if (quickItemSpinner) quickItemSpinner.classList.remove('d-none');
+      if (btnSubmitQuickItem) btnSubmitQuickItem.disabled = true;
+
+      const formData = new FormData(quickItemForm);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch('/items/quick-create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.item) {
+          const item = result.item;
+          
+          // Add to itemsDataList
+          const itemsDataList = document.getElementById('itemsDataList');
+          if (itemsDataList) {
+            const opt = document.createElement('option');
+            opt.value = item.name;
+            opt.dataset.id = item.id;
+            opt.dataset.hsn = item.hsn_code || '';
+            opt.dataset.unit = item.unit || 'PCS';
+            opt.dataset.price = item.sale_price || 0;
+            opt.dataset.tax = item.tax_rate || 0;
+            opt.textContent = `${item.name} (Stock: ${item.current_stock || 0} ${item.unit || 'PCS'} | ₹${item.sale_price || 0})`;
+            itemsDataList.appendChild(opt);
+          }
+
+          // Look for empty row or add a new row
+          const rows = itemsTableBody ? itemsTableBody.querySelectorAll('.invoice-item-row') : [];
+          let targetRow = null;
+          for (let i = 0; i < rows.length; i++) {
+            const nameInput = rows[i].querySelector('.row-item-name');
+            if (nameInput && (!nameInput.value || !nameInput.value.trim())) {
+              targetRow = rows[i];
+              break;
+            }
+          }
+
+          if (targetRow) {
+            targetRow.querySelector('.row-item-id').value = item.id;
+            targetRow.querySelector('.row-item-name').value = item.name;
+            targetRow.querySelector('.row-hsn').value = item.hsn_code || '';
+            targetRow.querySelector('.row-unit').value = item.unit || 'PCS';
+            targetRow.querySelector('.row-rate').value = item.sale_price || item.purchase_price || 0;
+            if (targetRow.querySelector('.row-tax-rate')) {
+              targetRow.querySelector('.row-tax-rate').value = item.tax_rate || 0;
+            }
+            updateRowCalculation(targetRow);
+            updateAllCalculations();
+          } else {
+            addNewRow({
+              id: item.id,
+              name: item.name,
+              hsn_code: item.hsn_code || '',
+              unit: item.unit || 'PCS',
+              rate: item.sale_price || item.purchase_price || 0,
+              tax_rate: item.tax_rate || 0,
+              quantity: 1
+            });
+          }
+
+          // Close modal and reset form
+          const modalEl = document.getElementById('modalQuickAddItem');
+          if (modalEl) {
+            const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modalInstance.hide();
+          }
+          quickItemForm.reset();
+
+          showToastNotification(`✓ Item "${item.name}" created and added to record!`, 'success');
+        } else {
+          if (quickItemAlert) {
+            quickItemAlert.textContent = result.error || 'Failed to create item.';
+            quickItemAlert.classList.remove('d-none');
+          }
+        }
+      } catch (err) {
+        console.error('Error creating item:', err);
+        if (quickItemAlert) {
+          quickItemAlert.textContent = 'Server communication error: ' + err.message;
+          quickItemAlert.classList.remove('d-none');
+        }
+      } finally {
+        if (quickItemSpinner) quickItemSpinner.classList.add('d-none');
+        if (btnSubmitQuickItem) btnSubmitQuickItem.disabled = false;
+      }
+    });
   }
 
   // Check for unsaved draft recovery on initial page load

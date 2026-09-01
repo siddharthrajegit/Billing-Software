@@ -8,6 +8,7 @@ router.use(ensureUserOnly, ensureActiveFirm);
 router.get('/', itemController.listItems);
 router.get('/create', itemController.getCreate);
 router.post('/create', itemController.postCreate);
+router.post('/quick-create', itemController.postQuickCreate);
 router.get('/edit/:id', itemController.getEdit);
 router.post('/edit/:id', itemController.postEdit);
 router.post('/adjust/:id', itemController.postAdjustStock);
