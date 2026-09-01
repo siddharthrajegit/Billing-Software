@@ -105,11 +105,22 @@ app.use('/settings', settingRoutes);
 app.use('/legal', legalRoutes);
 app.get('/about', (req, res) => res.redirect('/legal?tab=about'));
 app.get('/pricing', (req, res) => res.redirect('/legal?tab=pricing'));
+app.get('/contact', (req, res) => res.redirect('/legal?tab=contact'));
 app.get('/terms', (req, res) => res.redirect('/legal?tab=terms'));
 app.get('/privacy', (req, res) => res.redirect('/legal?tab=privacy'));
 app.get('/refund-policy', (req, res) => res.redirect('/legal?tab=refund'));
 app.get('/disclaimer', (req, res) => res.redirect('/legal?tab=disclaimer'));
 app.get('/security', (req, res) => res.redirect('/legal?tab=security'));
+
+// SEO Crawlers & Sitemaps
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
+});
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
 
 app.use('/', invoiceRoutes);
 

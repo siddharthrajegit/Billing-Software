@@ -1,0 +1,32 @@
+# Robots.txt for RACE FINANCE (https://racefinance.site)
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /pricing
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+Allow: /refund-policy
+Allow: /disclaimer
+Allow: /security
+Allow: /auth/login
+Allow: /legal
+
+# Disallow private authenticated areas and admin portals
+Disallow: /admin/
+Disallow: /admin
+Disallow: /dashboard/
+Disallow: /dashboard
+Disallow: /sales/
+Disallow: /purchases/
+Disallow: /invoices/
+Disallow: /parties/
+Disallow: /items/
+Disallow: /reports/
+Disallow: /settings/
+Disallow: /backup/
+Disallow: /payments/
+Disallow: /firms/
+
+# Sitemap Location
+Sitemap: https://racefinance.site/sitemap.xml
